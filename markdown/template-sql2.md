@@ -4,15 +4,25 @@
 
 ## Introduction
 
-Ce sujet d'étude à pour objectif d'approfondir .....
+Ce sujet d'étude à pour objectif d'approfondir les liens et les dépendances entre "autocommit", "commit" et "rollback" et les "transactions".
 
 ## Objectifs
 
-Il s'agit de prouver par la pratique les points suivants:
+- Démontré l'utilité de l'autocommit et la dépendance qu'il a avec TRANSACTION
 
-* Mesurer le poids d'une requête (RAM)
-* Tester les transactions en exploitant un autre *engine* que InnoDB
-* Valider que les journaux transactionnel respect les principes ACID
+
+## Définition de dépendances
+
+>La dépendence entre "autocommit", "commit" et "rollback" et les "transactions", et le qu'elles sont utilisé afin de 
+faire d'assurer l'atomicité d'une base de données.
+
+**_Définition à faire valider._**
+
+--- 
+
+Il s'agit de prouver par la pratique les points suivants :
+
+
 
 ## Scénario
 
@@ -39,3 +49,17 @@ Source MySQL !!!!
 ```
 Comment mesure le temps de la requête
 ```
+
+## Mes questions :
+- Dans quels cas utiliser une transaction ou un autocommit = OFF ?
+- Découvrir les savepoint
+- Rollback essayer de le valider en voyant les log ?
+- Est-ce que l'on peut voir les commandes pas encore commit ? (dans un fichier temporaire ?)
+- Définir ce qu'est la dépendance.
+
+### Source
+
+* [Dev MySQL - autocommit, commit and rollback](https://dev.mysql.com/doc/refman/8.4/en/innodb-autocommit-commit-rollback.html)
+* [Dev MySQL - commit](https://dev.mysql.com/doc/refman/8.4/en/commit.html)
+* [Dev MySQL - Rollback and savepoint](https://dev.mysql.com/doc/refman/9.0/en/savepoint.html)
+* [Dev MySQL - Rollback and savepoint](https://dev.mysql.com/doc/refman/8.4/en/implicit-commit.html)
