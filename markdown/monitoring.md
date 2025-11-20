@@ -22,17 +22,41 @@ Il s'agit de prouver par la pratique les points suivants:
 
 ## Scénario
 
--   (Given) Importer ce script d'initalisation de la base de données de tests
+-   (Given) Mettre en place la configuration de base et la DBB test avec une query dans l'historique
 
-[file to import testdb](fichier.sql)
-
--   (When) Ajouter un index sur l'attribut X
+[file to import testdb](../appendices/initDummyDatabase.sql)
+[file to import performance schema configuration](../appendices/configurePerformanceSchema.sql)
 
 ```sql
-INSERT INTO 'permet de .....
+SELECT
+    users.first_name,
+    users.last_name,
+    products.name AS product_name,
+    products.price,
+    orders.quantity,
+    (products.price * orders.quantity) AS total_price
+FROM users
+JOIN orders
+    ON users.id = orders.user_id
+JOIN products
+    ON products.id = orders.product_id
+WHERE users.email LIKE '%example.com'
+ORDER BY users.last_name;
 ```
 
--   (Then) La même requête en consommant moitié moins de RAM
+-   (When) Récupérer la requête pour le temps en milliseconde
+
+```sql
+SELECT EVENT_ID, TRUNCATE(TIMER_WAIT/1000000000,6) as Duration_MS, SQL_TEXT
+FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%example.com%';
+```
+
+```sql
+SELECT event_name AS Stage, TRUNCATE(TIMER_WAIT/1000000000,6) AS Duration_MS
+FROM performance_schema.events_stages_history_long WHERE NESTING_EVENT_ID={Id_de_la_query_precedente};
+```
+
+-   (Then) Constater la liste des étapes et leur temps d'exécution
 
 -   [ma vidéo de démonstartion](lien-vers-une-vidéo)
 
