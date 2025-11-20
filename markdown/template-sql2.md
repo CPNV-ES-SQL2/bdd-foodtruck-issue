@@ -1,5 +1,7 @@
 # Sujet d'étude
 
+* [Critères d'évaluation](https://cpnv-es-ngy.gitbook.io/sql2/evaluations)
+
 ## Introduction
 
 Ce sujet d'étude à pour objectif d'approfondir .....
