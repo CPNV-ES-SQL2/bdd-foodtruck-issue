@@ -10,9 +10,9 @@ Ce sujet d'étude à pour objectif d'approfondir .....
 
 Il s'agit de prouver par la pratique les points suivants:
 
-* Mesurer le poids d'une requête (RAM)
-* Tester les transactions en exploitant un autre *engine* que InnoDB
-* Valider que les journaux transactionnel respect les principes ACID
+* Filtrer et répliquer des données entre 2 serveurs MySQL grâce au moteur ``BLACKHOLE``
+* Accéder à des données d'une autre instance de MySQL sans réplication/cluster grâce à l'**engine** ``FEDERATED``
+* Perte de données possible avec l'**engine** ``MyISAM`` et comparaison avec ``InnoDB``
 
 ## Scénario
 
