@@ -1,4 +1,4 @@
-# Sujet d'étude
+# Sujet d'étude Julien Schneider
 
 * [Critères d'évaluation](https://cpnv-es-ngy.gitbook.io/sql2/evaluations)
 
@@ -43,13 +43,13 @@ Then :
 - La table students contient un étudiant Bob avec le téléphone 076 666 66 66.
 - La table students ne doit pas contenir un étudiant Alice avec le téléphone 079 999 99 99.
 
-´´´sql
+```sql
 -- Given
 
 --When
 
 --Then
-´´´
+```
 
 ### COMMIT
 #### Description
@@ -71,13 +71,13 @@ Then :
 - La table students contient un étudiant Bob avec le téléphone 076 666 66 66. 
 - La table students contient un étudiant Alice avec le téléphone 079 999 99 99.
 
-´´´sql
+```sql
 -- Given
 
 --When
 
 --Then
-´´´
+```
 
 ## Scénario transaction
 ### Intéruption de session
@@ -102,13 +102,13 @@ Then :
 - La table students contient un étudiant Bob avec le téléphone 076 666 66 66.
 - La table students ne doit pas contenir un étudiant Alice avec le téléphone 079 999 99 99.
 
-´´´sql
+```sql
 -- Given
 
 --When
 
 --Then
-´´´
+```
 
 ### SAVE POINT
 #### COMMIT
@@ -135,13 +135,13 @@ Then :
 - La table students contient un étudiant Alice avec le téléphone 079 999 99 99.
 - La table students ne doit pas contenir un étudiant Chris avec le téléphone 078 888 88 88.
 
-´´´sql
+```sql
 -- Given
 
 --When
 
 --Then
-´´´
+```
 
 #### ROLLBACK
 ##### Description
@@ -168,13 +168,13 @@ Then :
 - La table students ne doit pas contenir un étudiant Chris avec le téléphone 078 888 88 88.
 
 
-´´´sql
+```sql
 -- Given
 
 --When
 
 --Then
-´´´
+```
 
 ### IMPLICIT COMMIT
 #### Description
@@ -201,13 +201,13 @@ Then :
 
 
 
-´´´sql
+```sql
 -- Given
 
 --When
 
 --Then
-´´´
+```
 
 ## Mes questions (notes personnelle) :
 - Dans quels cas utiliser une transaction ou un autocommit = OFF ?
