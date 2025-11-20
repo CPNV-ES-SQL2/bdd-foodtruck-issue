@@ -16,7 +16,7 @@ Ce sujet d'étude à pour objectif d'approfondir les liens et les dépendances e
 
 ## Définition de dépendances
 
->Le lien entre l'autocommit et les transactions est qu’ils sont utilisés pour garantir l’atomicité des opérations sur la base de données.
+>Pour garantir l’atomicité des opérations sur la base de données, on peut utiliser les transactions et le mode autocommit, qui sont étroitement liés car tous deux servent à assurer que les modifications sont appliquées de manière cohérente et indivisible.
 
 **_Définition à faire valider._**
 
