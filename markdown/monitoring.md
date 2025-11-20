@@ -11,14 +11,14 @@ Ce sujet d'étude à pour objectif d'approfondir comment monitorer des requêtes
 Il s'agit de prouver par la pratique les points suivants:
 
 -   Comment utiliser `Performance Schema` pour :
-    -   Comment mesurer le poids d'une requête (RAM)
-    -   Comment mesurer le temps d'exécution d'une requête (ms)
+    -   Mesurer le poids d'une requête (RAM)
+    -   Mesurer le temps d'exécution d'une requête (ms)
     -   Comparer des requêtes sur leur poids et leur temps d'exécution
-    -   Comment diagnostiquer des requêtes pour les optimiser
+    -   Diagnostiquer des requêtes pour les optimiser
 -   Comment utiliser `sys Schema` pour :
-    -   Comment synthétiser les données de `Performance Schema`
-    -   Comment utiliser les procédures `sys Schema`
-    -   Comment générer des rapports de diagnostiques
+    -   Synthétiser les données de `Performance Schema`
+    -   Utiliser les procédures `sys Schema`
+    -   Générer des rapports de diagnostiques
 
 ## Scénario
 
@@ -26,7 +26,7 @@ Il s'agit de prouver par la pratique les points suivants:
 
 [file to import testdb](fichier.sql)
 
--   (Wheb) Ajouter un index sur l'attribut X
+-   (When) Ajouter un index sur l'attribut X
 
 ```sql
 INSERT INTO 'permet de .....
