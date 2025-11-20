@@ -7,13 +7,13 @@
 Ce sujet d'étude à pour objectif d'approfondir les liens et les dépendances entre "autocommit", "commit" et "rollback" et les "transactions".
 
 ## Objectifs
-
-- Démontré l'utilité de l'autocommit et la dépendance qu'il a avec TRANSACTION
+  - [ ] Quel est le comportement de MySQL lorsque l’autocommit est activé ou désactivé, et dans quel cas choisir l’un ou l’autre mode ?
+  - [ ] Présenter une transaction en illustrant les différents cas de figure : COMMIT, ROLLBACK et SAVEPOINT.
 
 
 ## Définition de dépendances
 
->La dépendance entre "autocommit" et "transactions", est qu'ils sont utilisés afin d'assurer l'atomicité d'une base de données.
+>Le lien entre l'autocommit et les transactions est qu’ils sont utilisés pour garantir l’atomicité des opérations sur la base de données.
 
 **_Définition à faire valider._**
 
