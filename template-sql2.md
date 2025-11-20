@@ -16,27 +16,23 @@ Mise en place d'un prototype de framework de test pour valider aussi bien le mod
 
 ## Scénario
 
-* (Given) Importer ce script d'initalisation de la base de données de tests
+* (Given) TODO
 
-[file to import testdb](fichier.sql)
+[file todo](fichier.sql)
 
-* (Wheb) Ajouter un index sur l'attribut X
+* (When) TODO
 
 ```sql
-INSERT INTO 'permet de .....
+//TODO
 ```
 
-* (Then) La même requête en consommant moitié moins de RAM
+* (Then) TODO
 
 * [ma vidéo de démonstartion](lien-vers-une-vidéo)
 
 ## Théorie et Sources
 
-Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
+//TODO Résumé
 
 * [Dev MySQL - Memory use](https://dev.mysql.com/doc/refman/8.4/en/memory-use.html)
 * [Dev MySQL - Test Framework](https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_TESTING_TOOLS.html)
-
-```
-Comment mesure le temps de la requête
-```
