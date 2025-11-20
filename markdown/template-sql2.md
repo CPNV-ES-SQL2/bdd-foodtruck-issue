@@ -7,8 +7,11 @@
 Ce sujet d'étude à pour objectif d'approfondir les liens et les dépendances entre "autocommit", "commit" et "rollback" et les "transactions".
 
 ## Objectifs
-  - [ ] Quel est le comportement de MySQL lorsque l’autocommit est activé ou désactivé, et dans quel cas choisir l’un ou l’autre mode ?
-  - [ ] Présenter une transaction en illustrant les différents cas de figure : COMMIT, ROLLBACK et SAVEPOINT.
+  - [ ] Tester le comportement de MySQL lorsque l’autocommit est activé ou désactivé, et les conditions afin de choisir l’un ou l’autre mode.
+  - [ ] Présenter une transaction en illustrant les différents cas de figure.
+    - COMMIT : Qu'il permet de valider une transaction ou un groupe de requête.
+    - ROLLBACK et SAVEPOINT : tester les savepoint et les différents rollback.
+    - IMPLICIT COMMIT : Les déclarations qui peu importe la config MySQL fait un commit.
 
 
 ## Définition de dépendances
@@ -38,5 +41,8 @@ Ce sujet d'étude à pour objectif d'approfondir les liens et les dépendances e
 
 * [Dev MySQL - autocommit, commit and rollback](https://dev.mysql.com/doc/refman/8.4/en/innodb-autocommit-commit-rollback.html)
 * [Dev MySQL - commit](https://dev.mysql.com/doc/refman/8.4/en/commit.html)
-* [Dev MySQL - Rollback and savepoint](https://dev.mysql.com/doc/refman/9.0/en/savepoint.html)
-* [Dev MySQL - Rollback and savepoint](https://dev.mysql.com/doc/refman/8.4/en/implicit-commit.html)
+* [Dev MySQL - Savepoint](https://dev.mysql.com/doc/refman/9.0/en/savepoint.html)
+* [Dev MySQL - Implicit Commit](https://dev.mysql.com/doc/refman/8.4/en/implicit-commit.html)
+
+### Définition autocommit
+* [Dev MySQL - Autocommit](https://dev.mysql.com/doc/refman/8.4/en/glossary.html#glos_autocommit)
