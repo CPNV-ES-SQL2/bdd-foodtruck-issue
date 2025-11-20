@@ -13,8 +13,7 @@ Ce sujet d'étude à pour objectif d'approfondir les liens et les dépendances e
 
 ## Définition de dépendances
 
->La dépendence entre "autocommit", "commit" et "rollback" et les "transactions", et le qu'elles sont utilisé afin de 
-faire d'assurer l'atomicité d'une base de données.
+>La dépendence entre "autocommit" et "transactions", est qu'ils sont utilisés afin d'assurer l'atomicité d'une base de données.
 
 **_Définition à faire valider._**
 
