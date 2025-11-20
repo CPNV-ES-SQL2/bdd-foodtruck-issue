@@ -8,18 +8,17 @@ Ce sujet d'étude à pour objectif d'approfondir .....
 
 Il s'agit de prouver par la pratique les points suivants:
 
-* Mesurer le poids d'une requête (RAM)
-* Tester les transactions en exploitant un autre *engine* que InnoDB
-* Valider que les journaux transactionnel respect les principes ACID
-  
+1. Comprendre le rôle du Buffer Pool dans InnoDB : observer comment InnoDB utilise la mémoire pour stocker les pages de données et d’index afin d’améliorer les performances.
 
-## Théorie et Sources
+2. Mesurer l’impact de la taille du Buffer Pool : comparer les temps de lecture/écriture sur une table volumineuse avec différentes tailles de `innodb_buffer_pool_size`.
 
-Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
+3. Observer la réduction des accès disque grâce au Buffer Pool : analyser le nombre de lectures logiques vs physiques (Buffer Pool hit ratio) à l’aide de `SHOW ENGINE INNODB STATUS` ou des métriques `INNODB_BUFFER_POOL_HIT_RATIO`.
 
-Source MySQL !!!!
+4. Identifier des problèmes de performance liés à un Buffer Pool trop petit : simuler une charge importante sur une table InnoDB et constater les ralentissements dus aux lectures fréquentes depuis le disque.
 
-## Validation pratique
+5. Optimiser les performances de requêtes : expérimenter avec différentes configurations du Buffer Pool pour constater l’impact sur les temps de requête et la charge I/O.
+
+## Scénario
 
 * (Given) Importer ce script d'initalisation de la base de données de tests
 
@@ -37,10 +36,18 @@ INSERT INTO 'permet de .....
 Comment mesure le temps de la requête
 ```
 
-
 * [ma vidéo de démonstartion](lien-vers-une-vidéo)
 
+## Théorie et Sources
+
+Source : [MySQL Buffer Pool](https://dev.mysql.com/doc/refman/8.4/en/innodb-buffer-pool.html)
+
+> Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)  
+> **Source MySQL !!!!**
+
 ---
+
+## Vidéo donnée dans l'issue
 
 ### Importation des données (Importing the data)
 
