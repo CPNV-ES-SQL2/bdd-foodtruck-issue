@@ -8,7 +8,7 @@ Ce sujet d'étude à pour objectif d'approfondir les outils et stratégie de tes
 
 ## Objectifs
 
-Mise en place d'un prototype de framework de test pour valider aussi bien le modèle (DDL) que les requêtes (DML) en respectant les critères suivantes:
+Mise en place d'un prototype de framework de test pour valider aussi bien le modèle (DDL) que les requêtes (DML + DQL) en respectant les critères suivantes:
 
 - [ ] En limitant la charge de travail pour préparer, nettoyer et supprimer la base de données de test - mode mémoire ?
 - [ ] En étant le plus proche possible de l'environnement du client.
