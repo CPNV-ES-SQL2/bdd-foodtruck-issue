@@ -36,7 +36,7 @@ docker exec -it mysql8 mysql -uroot -proot
 
 - (Given) Importer le script d'initialisation d'une base de données de test
 
-[file to import testdb](fichier.sql)
+[file to import](../appendices/script.sql)
 
 - (When) Lancer une requête SELECT sur une table volumineuse pour charger des données dans le Buffer Pool
 
