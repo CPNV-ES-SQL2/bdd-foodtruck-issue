@@ -18,23 +18,126 @@ Il s'agit de prouver par la pratique les points suivants:
 
 5. Optimiser les performances de requêtes : expérimenter avec différentes configurations du Buffer Pool pour constater l’impact sur les temps de requête et la charge I/O.
 
-## Scénario
+## Scénarios
 
-* (Given) Importer ce script d'initalisation de la base de données de tests
+1. Démarrer le service Docker :
+
+```bash
+docker compose up -d
+```
+
+2. Se connecter au service MySQL dans Docker :
+
+```bash
+docker exec -it mysql8 mysql -uroot -proot
+```
+
+### Scénario 1 : Comprendre le rôle du Buffer Pool
+
+- (Given) Importer le script d'initialisation d'une base de données de test
 
 [file to import testdb](fichier.sql)
 
-* (Wheb) Ajouter un index sur l'attribut X
+- (When) Lancer une requête SELECT sur une table volumineuse pour charger des données dans le Buffer Pool
 
 ```sql
-INSERT INTO 'permet de .....
+SELECT * FROM transactions LIMIT 10000;
 ```
 
-* (Then) La même requête en consommant moitié moins de RAM
+- (Then) Observer dans le statut InnoDB que les pages sont en mémoire
 
+```sql
+SHOW ENGINE INNODB STATUS\G
+-- Vérifier la section "BUFFER POOL AND MEMORY"
 ```
-Comment mesure le temps de la requête
+
+### Scénario 2 : Mesurer l’impact de la taille du Buffer Pool
+
+- (Given) Table transactions avec plusieurs miliers de lignes
+- (When) Modifier la taille du Buffer Pool et relancer des requêtes
+
+```sql
+SHOW ENGINE INNODB STATUS\G
+
+-- 512 Mo
+SET GLOBAL innodb_buffer_pool_size = 536870912;
+
+-- 384 Mo
+SET GLOBAL innodb_buffer_pool_size = 402653184;
+
+-- 256 Mo
+SET GLOBAL innodb_buffer_pool_size = 268435456;
+
+-- 16 Mo
+SET GLOBAL innodb_buffer_pool_size = 16777216;
+
+-- 4 Mo
+SET GLOBAL innodb_buffer_pool_size = 4194304;
+
+SELECT COUNT(*) FROM transactions WHERE amount > 1;
 ```
+
+- (Then) Comparer le temps de requête et le nombre de lectures physiques
+
+```sql
+SHOW ENGINE INNODB STATUS\G
+```
+
+### Scénario 3 : Observer la réduction des accès disque
+
+- (Given) Table transactions déjà chargée dans le Buffer Pool
+- (When) Exécuter plusieurs fois la même requête SELECT
+
+```sql
+SELECT * FROM transactions WHERE id = 4;
+```
+
+- (Then) Vérifier que les lectures logiques augmentent et les lectures physiques restent faibles
+
+```sql
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+-- Vérifier les hits vs reads
+```
+
+### Scénario 4 : Identifier des problèmes de performance avec un Buffer Pool trop petit
+
+- (Given) Réduire la taille du Buffer Pool à une valeur très faible
+
+```sql
+SET GLOBAL innodb_buffer_pool_size = 4194304;
+```
+
+- (When) Lancer des requêtes sur la table volumineuse
+
+```sql
+SELECT * FROM transactions WHERE montant > 10;
+```
+
+- (Then) Observer un grand nombre de lectures depuis le disque et des temps de réponse élevés
+
+```sql
+SHOW ENGINE INNODB STATUS\G
+```
+
+### Scénario 5 : Optimiser les performances de requêtes
+
+- (Given) Buffer Pool correctement dimensionné (par ex. 1GB)
+- (When) Exécuter une requête complexe sur plusieurs colonnes indexées
+
+```sql
+SELECT client_id, SUM(montant) 
+FROM transactions 
+WHERE date >= '2025-01-01' 
+GROUP BY client_id;
+```
+
+- (Then) Observer une diminution des temps de réponse et un meilleur hit ratio
+
+```sql
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+```
+
+---
 
 * [ma vidéo de démonstartion](lien-vers-une-vidéo)
 
