@@ -32,97 +32,193 @@ docker compose up -d
 docker exec -it mysql8 mysql -uroot -proot
 ```
 
-### Scénario 1 : Comprendre le rôle du Buffer Pool
-
-- (Given) Importer le script d'initialisation d'une base de données de test
-
-[file to import](../appendices/script.sql)
-
-- (When) Lancer une requête SELECT sur une table volumineuse pour charger des données dans le Buffer Pool
-
-```sql
-SELECT * FROM transactions LIMIT 10000;
+3. Exécuter le script dans le container docker
+```bash
+docker exec -i mysql8 mysql -uroot -proot < ../appendices/script.sql
 ```
 
-- (Then) Observer dans le statut InnoDB que les pages sont en mémoire
+### Scénario 1 : Comprendre le rôle du Buffer Pool
+
+**Given**
+
+- Le service MySQL est démarré et la base de données de test est importée :
+
+```sql
+docker compose up -d
+docker exec -i mysql8 mysql -uroot -proot < ../appendices/script.sql
+```
+
+- Vérifier l’état initial du Buffer Pool :
 
 ```sql
 SHOW ENGINE INNODB STATUS\G
--- Vérifier la section "BUFFER POOL AND MEMORY"
+-- Noter les valeurs :
+--   Buffer pool size
+--   Database pages
+--   Free pages
+--   Pages read
 ```
+
+**When**
+
+- Lancer une requête SELECT sur une table volumineuse pour charger des données dans le Buffer Pool
+
+```sql
+SELECT * FROM transactions LIMIT 30000;
+```
+
+**Then (expected)**
+
+- Les valeurs du Buffer Pool doivent montrer une augmentation de :
+  - Database pages
+  - Pages read
+  - Pages created
+- Comparaison "avant/après" visible dans :
+
+```sql
+SHOW ENGINE INNODB STATUS\G
+```
+
+---
 
 ### Scénario 2 : Mesurer l’impact de la taille du Buffer Pool
 
-- (Given) Table transactions avec plusieurs miliers de lignes
-- (When) Modifier la taille du Buffer Pool et relancer des requêtes
+**Given**
+- Table transactions avec plusieurs miliers de lignes
+- Relever l’état initial du buffer pool :
 
 ```sql
 SHOW ENGINE INNODB STATUS\G
+SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
+```
 
--- 512 Mo
+**When**
+
+- Modifier la taille du Buffer Pool et relancer des requêtes
+
+```sql
+-- Set la taille a 512Mo
 SET GLOBAL innodb_buffer_pool_size = 536870912;
 
--- 384 Mo
-SET GLOBAL innodb_buffer_pool_size = 402653184;
+-- Vérifier que la taille est modifiée
+SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 
--- 256 Mo
-SET GLOBAL innodb_buffer_pool_size = 268435456;
-
--- 16 Mo
-SET GLOBAL innodb_buffer_pool_size = 16777216;
-
--- 4 Mo
-SET GLOBAL innodb_buffer_pool_size = 4194304;
-
+-- Requête de test
 SELECT COUNT(*) FROM transactions WHERE amount > 1;
 ```
 
-- (Then) Comparer le temps de requête et le nombre de lectures physiques
+**Then (expected)**
+- Comparer :
+  - temps d’exécution de la requête
+  - lectures physiques (Innodb_buffer_pool_reads)
+  - hits mémoire (Innodb_buffer_pool_read_ahead, Innodb_buffer_pool_read_requests)
 
 ```sql
-SHOW ENGINE INNODB STATUS\G
+SHOW ENGINE INNODB STATUS\G;
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 ```
+
+**Expected :**
+- Plus le Buffer Pool est petit → plus les lectures disque augmentent → latence plus élevée.  
+- Buffer Pool plus grand → plus de lectures logiques → meilleure performance
+
+---
 
 ### Scénario 3 : Observer la réduction des accès disque
 
-- (Given) Table transactions déjà chargée dans le Buffer Pool
-- (When) Exécuter plusieurs fois la même requête SELECT
+**Given**
+
+- Table transactions déjà chargée dans le Buffer Pool
+
+```sql
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_reads';
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_read_requests';
+```
+
+**When**
+
+- Exécuter plusieurs fois la même requête SELECT
 
 ```sql
 SELECT * FROM transactions WHERE id = 4;
 ```
 
-- (Then) Vérifier que les lectures logiques augmentent et les lectures physiques restent faibles
+**Then (expected)**
+
+- Les lectures physiques n’augmentent presque pas :
+  - `Innodb_buffer_pool_reads` reste stable.
+- Les lectures logiques augmentent fortement :
+  - `Innodb_buffer_pool_read_requests` augmente à chaque exécution.
+- Le "hit ratio" doit se rapprocher de 100 %.
 
 ```sql
 SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
--- Vérifier les hits vs reads
 ```
+
+---
 
 ### Scénario 4 : Identifier des problèmes de performance avec un Buffer Pool trop petit
 
-- (Given) Réduire la taille du Buffer Pool à une valeur très faible
+**Given**
+
+- Réduire la taille du Buffer Pool à une valeur très faible
 
 ```sql
-SET GLOBAL innodb_buffer_pool_size = 4194304;
+SET GLOBAL innodb_buffer_pool_size = 4194304; -- 4 Mo
+SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 ```
 
-- (When) Lancer des requêtes sur la table volumineuse
-
-```sql
-SELECT * FROM transactions WHERE montant > 10;
-```
-
-- (Then) Observer un grand nombre de lectures depuis le disque et des temps de réponse élevés
+- Noter l’état initial des lectures :
 
 ```sql
 SHOW ENGINE INNODB STATUS\G
 ```
 
+**When**
+
+- Lancer des requêtes sur la table volumineuse
+
+```sql
+SELECT * FROM transactions WHERE montant > 10;
+```
+
+**Then (expected)**
+
+- Une augmentation notable :
+  - des lectures disque (Pages read)
+  - de la latence
+- Le Buffer Pool sera saturé :
+  - Free pages = très faible
+  - Database pages = proche du maximum de la taille du pool
+
+```sql
+SHOW ENGINE INNODB STATUS\G
+```
+
+**Expected :** performances nettement dégradées, nombreux aller-retours disque.
+
+---
+
 ### Scénario 5 : Optimiser les performances de requêtes
 
-- (Given) Buffer Pool correctement dimensionné (par ex. 1GB)
-- (When) Exécuter une requête complexe sur plusieurs colonnes indexées
+**Given**
+
+- Buffer Pool correctement dimensionné (par ex. 1GB)
+
+```sql
+SET GLOBAL innodb_buffer_pool_size = 1073741824;
+SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
+```
+
+- Vérifier l’état initial du buffer pool :
+
+```sql
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+```
+
+**When**
+
+- Exécuter une requête complexe sur plusieurs colonnes indexées
 
 ```sql
 SELECT client_id, SUM(montant) 
@@ -131,7 +227,13 @@ WHERE date >= '2025-01-01'
 GROUP BY client_id;
 ```
 
-- (Then) Observer une diminution des temps de réponse et un meilleur hit ratio
+**Then (expected)**
+
+- Diminution du temps de réponse
+- Amélioration du hit ratio :
+  - Augmentation `Innodb_buffer_pool_read_requests`
+  - Faible ou nulle augmentation de `Innodb_buffer_pool_reads`
+- Pages nécessaires stockées en mémoire
 
 ```sql
 SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
