@@ -8,13 +8,24 @@ Ce sujet d'étude à pour objectif d'approfondir les outils et stratégie de tes
 
 ## Objectifs
 
-Mise en place d'un prototype de framework de test pour valider aussi bien le modèle (DDL) que les requêtes (DML + DQL) en respectant les critères suivantes:
+Mise en place d'un prototype de framework de test pour valider aussi bien le modèle (MCD - MLD -> DDL) que les requêtes exploitant le modèle (DML) et en validant le comportement attendu en gérant soit des exceptions, soit des requêtes de type DQL.
 
-- [ ] En limitant la charge de travail pour préparer, nettoyer et supprimer la base de données de test - mode mémoire ?
+Les contraintes (ou critères de validation) sont les suivantes:
+- [ ] Limitant la charge de travail pour préparer, nettoyer et supprimer la base de données de test - mode mémoire ?
 - [ ] En étant le plus proche possible de l'environnement du client.
-- [ ] Exploitable à moindre effort dans tout le Pipeline CI/CD/CD.
+- [ ] Exploitable au sein d'un Pipeline CI/CD/CD.
 
 ## Scénario
+
+Les scénarios à réaliser seront écrits selon une approche BDD.
+
+* GIVEN -> DDL
+* WHEN -> DML
+* THEN -> DQL (ou exception)
+
+---
+
+### Scénario 1
 
 * (Given) TODO
 
