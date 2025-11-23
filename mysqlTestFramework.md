@@ -23,9 +23,10 @@ Les différentes solutions ont été étudiées avant de partir en réalisation:
 Mise en place d'un prototype de framework de test pour valider aussi bien le modèle (MCD - MLD -> DDL) que les requêtes exploitant le modèle (DML) et en validant le comportement attendu en gérant soit des exceptions, soit des requêtes de type DQL.
 
 Les contraintes (ou critères de validation) sont les suivantes:
-- [ ] Limitant la charge de travail pour préparer, nettoyer et supprimer la base de données de test - mode mémoire ?
+- [ ] Limiter la charge de travail pour préparer, nettoyer et supprimer la base de données de test.
 - [ ] En étant le plus proche possible de l'environnement du client.
 - [ ] Exploitable au sein d'un Pipeline CI/CD/CD.
+- [ ] Le seul effort de la part du développeur doit être d'ajouter des requêtes SQL pour jouer les scénarios.
 
 ## Scénario
 
