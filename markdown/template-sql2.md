@@ -26,15 +26,21 @@ Il s'agit de prouver par la pratique les points suivants:
 docker compose up -d
 ```
 
-2. Se connecter au service MySQL dans Docker :
+2. Copier le script SQL dans le container :
+
+```bash
+docker cp script.sql mysql8:/tmp/script.sql
+```
+
+3. Se connecter au service MySQL dans Docker :
 
 ```bash
 docker exec -it mysql8 mysql -uroot -proot
 ```
 
-3. Exécuter le script dans le container docker
+4. Exécuter le script dans le container docker
 ```bash
-docker exec -i mysql8 mysql -uroot -proot < ../appendices/script.sql
+source /tmp/script.sql;
 ```
 
 ### Scénario 1 : Comprendre le rôle du Buffer Pool
@@ -45,7 +51,9 @@ docker exec -i mysql8 mysql -uroot -proot < ../appendices/script.sql
 
 ```sql
 docker compose up -d
-docker exec -i mysql8 mysql -uroot -proot < ../appendices/script.sql
+docker cp script.sql mysql8:/tmp/script.sql
+docker exec -it mysql8 mysql -uroot -proot
+source /tmp/script.sql;
 ```
 
 - Vérifier l’état initial du Buffer Pool :
