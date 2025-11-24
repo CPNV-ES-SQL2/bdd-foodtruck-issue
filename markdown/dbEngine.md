@@ -10,25 +10,37 @@ Ce sujet d'étude à pour objectif d'approfondir .....
 
 Il s'agit de prouver par la pratique les points suivants:
 
-* Filtrer et répliquer des données entre 2 serveurs MySQL grâce au moteur ``BLACKHOLE``
+* Filtrer et répliquer des données entre 2 serveurs MySQL grâce à l'**engine** ``BLACKHOLE``
+![Blackhole Schema](../appendices/blackhole/schema.png)
 * Accéder à des données d'une autre instance de MySQL sans réplication/cluster grâce à l'**engine** ``FEDERATED``
+![Federated Schema](../appendices/federated/schema.png)
 * Perte de données possible avec l'**engine** ``MyISAM`` et comparaison avec ``InnoDB``
 
-## Scénario
+## Scénarios
 
-* (Given) Importer ce script d'initalisation de la base de données de tests
+### Scénario 1 - Réplication entre 2 serveurs grâce au FEDERATED
 
-[file to import testdb](fichier.sql)
+> **GIVEN**
 
-* (Wheb) Ajouter un index sur l'attribut X
+2 instances de MySQL sont lancées. ([docker-compose]())
+
+[Ce script]() doit être exécuté sur l'instance 1
+
+[Ce script]() doit être exécuté sur l'instance 2
+
+> **WHEN**
+
+On ajoute un utilisateur sur la table _users_ sur l'instance 1
 
 ```sql
-INSERT INTO 'permet de .....
+INSERT INTO sql2.users(name, email) VALUES ("test", "test@test.com");
 ```
 
-* (Then) La même requête en consommant moitié moins de RAM
+> **THEN**
 
-* [ma vidéo de démonstartion](lien-vers-une-vidéo)
+L'utilisateur est présent sur l'instance 1 et l'instance 2
+
+[![](../appendices/federated/video.mov)](../appendices/federated/video.mov)
 
 ## Théorie et Sources
 
