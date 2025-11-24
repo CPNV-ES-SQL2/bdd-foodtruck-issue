@@ -103,39 +103,61 @@ SHOW ENGINE INNODB STATUS\G
 - Table transactions avec plusieurs miliers de lignes
 - Relever l’état initial du buffer pool :
 
+> Restart le service pour vider le Buffer Pool
 
 ```bash
-# Restart le service pour vider le Buffer Pool
 docker restart mysql8
 docker exec -it mysql8 mysql -uroot -proot
 ```
 
 ```sql
 use buffer_pool_db;
-SHOW ENGINE INNODB STATUS\G
-SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
-```
 
-**When**
-
-- Modifier la taille du Buffer Pool et relancer des requêtes
-
-```sql
--- Set la taille a 512Mo
+-- Set la taille à 512Mo
 SET GLOBAL innodb_buffer_pool_size = 536870912;
 
 -- Vérifier que la taille est modifiée
 SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 
--- Requête de test
+-- Faire la requête de test
 SELECT COUNT(*) FROM transactions WHERE amount > 1;
+
+-- Relever l'état du Buffer Pool à 512Mo
+SHOW ENGINE INNODB STATUS\G
+SHOW GLOBAL VARIABLES LIKE 'Innodb_buffer_pool%';
+```
+
+**When**
+
+> Restart le service pour vider le Buffer Pool
+
+```bash
+docker restart mysql8
+docker exec -it mysql8 mysql -uroot -proot
+```
+
+- Modifier la taille du Buffer Pool et relancer des requêtes
+
+```sql
+-- Set la taille à 128Mo
+SET GLOBAL innodb_buffer_pool_size = 134217728;
+
+-- Vérifier que la taille est modifiée
+SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
+
+-- Faire la requête de test
+SELECT COUNT(*) FROM transactions WHERE amount > 1;
+
+-- Relever l'état du Buffer Pool à 128Mo
+SHOW ENGINE INNODB STATUS\G
+SHOW GLOBAL VARIABLES LIKE 'Innodb_buffer_pool%';
 ```
 
 **Then (expected)**
 - Comparer :
-  - temps d’exécution de la requête
-  - lectures physiques (Innodb_buffer_pool_reads)
-  - hits mémoire (Innodb_buffer_pool_read_ahead, Innodb_buffer_pool_read_requests)
+  - temps d’exécution des requêtes
+  - lectures physiques (`Innodb_buffer_pool_reads`)
+  - hits mémoire (`Innodb_buffer_pool_read_ahead`, `Innodb_buffer_pool_read_requests`)
 
 ```sql
 SHOW ENGINE INNODB STATUS\G;
