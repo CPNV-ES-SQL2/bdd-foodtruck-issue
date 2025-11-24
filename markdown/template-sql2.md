@@ -63,12 +63,13 @@ source /tmp/script.sql;
 
 ```sql
 SHOW ENGINE INNODB STATUS\G
--- Noter les valeurs :
---   Buffer pool size
---   Database pages
---   Free pages
---   Pages read
 ```
+
+> Noter les valeurs
+> - Buffer pool size
+> - Database pages
+> - Free pages
+> - Pages read
 
 **When**
 
