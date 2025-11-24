@@ -118,51 +118,52 @@ SET GLOBAL innodb_buffer_pool_size = 536870912;
 
 -- Vérifier que la taille est modifiée
 SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
-
--- Faire la requête de test
-SELECT COUNT(*) FROM transactions WHERE amount > 1;
-
--- Relever l'état du Buffer Pool à 512Mo
-SHOW ENGINE INNODB STATUS\G
-SHOW GLOBAL VARIABLES LIKE 'Innodb_buffer_pool%';
 ```
 
 **When**
 
-> Restart le service pour vider le Buffer Pool
-
-```bash
-docker restart mysql8
-docker exec -it mysql8 mysql -uroot -proot
-```
-
-- Modifier la taille du Buffer Pool et relancer des requêtes
+- Exécuter la requête de test pour charger le Buffer Pool :
 
 ```sql
--- Set la taille à 128Mo
-SET GLOBAL innodb_buffer_pool_size = 134217728;
-
--- Vérifier que la taille est modifiée
-SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
-
--- Faire la requête de test
-SELECT COUNT(*) FROM transactions WHERE amount > 1;
-
--- Relever l'état du Buffer Pool à 128Mo
-SHOW ENGINE INNODB STATUS\G
-SHOW GLOBAL VARIABLES LIKE 'Innodb_buffer_pool%';
+SELECT COUNT(*)
+FROM transactions t1
+CROSS JOIN transactions t2
+WHERE t1.amount > 1
+  AND t2.amount < 3;
 ```
 
-**Then (expected)**
-- Comparer :
-  - temps d’exécution des requêtes
-  - lectures physiques (`Innodb_buffer_pool_reads`)
-  - hits mémoire (`Innodb_buffer_pool_read_ahead`, `Innodb_buffer_pool_read_requests`)
+- Relever l’état du Buffer Pool après la requête :
 
 ```sql
 SHOW ENGINE INNODB STATUS\G;
 SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 ```
+
+- Changer la taille du Buffer Pool à 128Mo et répéter le test :
+
+```sql
+SET GLOBAL innodb_buffer_pool_size = 134217728;
+
+-- Vérifier que la taille est bien appliquée
+SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
+
+-- Refaire la même requête CROSS JOIN
+SELECT COUNT(*)
+FROM transactions t1
+CROSS JOIN transactions t2
+WHERE t1.amount > 1
+  AND t2.amount < 3;
+
+-- Relever l’état du Buffer Pool après la requête
+SHOW ENGINE INNODB STATUS\G;
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+```
+
+**Then (expected)**
+- Comparer :
+  - Temps d’exécution des requêtes
+  - Lectures physiques (`Innodb_buffer_pool_reads`)
+  - Hits mémoire (`Innodb_buffer_pool_read_ahead`, `Innodb_buffer_pool_read_requests`)
 
 **Expected :**
 - Plus le Buffer Pool est petit → plus les lectures disque augmentent → latence plus élevée.  
