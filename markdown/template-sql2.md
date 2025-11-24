@@ -78,7 +78,7 @@ SHOW ENGINE INNODB STATUS\G
 - Lancer une requête SELECT sur une table volumineuse pour charger des données dans le Buffer Pool
 
 ```sql
-SELECT * FROM transactions LIMIT 30000;
+SELECT * FROM transactions;
 ```
 
 **Then (expected)**
