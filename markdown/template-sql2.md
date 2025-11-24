@@ -53,6 +53,8 @@ source /tmp/script.sql;
 docker compose up -d
 docker cp script.sql mysql8:/tmp/script.sql
 docker exec -it mysql8 mysql -uroot -proot -e "source /tmp/script.sql;"
+
+# Restart le service pour vider le Buffer Pool
 docker restart mysql8
 docker exec -it mysql8 mysql -uroot -proot
 ```
