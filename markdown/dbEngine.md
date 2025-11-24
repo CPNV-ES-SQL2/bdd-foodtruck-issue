@@ -18,15 +18,15 @@ Il s'agit de prouver par la pratique les points suivants:
 
 ## Scénarios
 
-### Scénario 1 - Réplication entre 2 serveurs grâce au FEDERATED
+### Scénario 1 - Accès aux données d'une instance via une autre
 
 > **GIVEN**
 
-2 instances de MySQL sont lancées. ([docker-compose]())
+2 instances de MySQL sont lancées. ([docker-compose](../appendices/federated/docker-compose.yml))
 
-[Ce script]() doit être exécuté sur l'instance 1
+[Ce script](../appendices/federated/script-mysql-1.sql) doit être exécuté sur l'instance 1
 
-[Ce script]() doit être exécuté sur l'instance 2
+[Ce script](../appendices/federated/script-mysql-2.sql) doit être exécuté sur l'instance 2
 
 > **WHEN**
 
@@ -38,11 +38,9 @@ INSERT INTO sql2.users(name, email) VALUES ("test", "test@test.com");
 
 > **THEN**
 
-L'utilisateur est présent sur l'instance 1 et l'instance 2
+L'utilisateur est présent sur l'instance 1 et accessible depuis l'instance 2
 
-<video controls>
-    <source src="../appendices/federated/video.mov" type="video/mp4">
-</video>
+[Vidéo](../appendices/federated/video.mov)
 
 ## Théorie et Sources
 
