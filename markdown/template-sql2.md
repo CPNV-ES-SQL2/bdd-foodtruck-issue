@@ -47,9 +47,27 @@ GRANT PROCESS ON *.* TO 'Bernard'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-# Initialisation de la base de données (commune à tous les scénario)
+> Pour les différents scénarios, les sessions sont réalisé avec deux utilisateurs différents.
+
+# Initialisation de la base de données (commune à tous les scénarios)
 - La base de données `bank` existe.
 - La table `users` existe et est vide.
+
+```mysql
+-- GIVEN : la base de données `bank` existe
+DROP DATABASE IF EXISTS bank;
+CREATE DATABASE bank;
+USE bank;
+
+-- Table users
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
+   user_id INT AUTO_INCREMENT PRIMARY KEY,
+   name    VARCHAR(100) NOT NULL,
+   balance DECIMAL(10,2) NOT NULL
+);
+
+```
 
 ## autocommit
 ### Scénario : Transfert d’argent entre deux comptes avec autocommit désactivé (deux sessions avec commit)
@@ -78,10 +96,57 @@ FLUSH PRIVILEGES;
     - Le solde total de 225 CHF est toujours respecté.
 ```sql
 -- Given
+INSERT INTO users (name, balance)
+VALUES
+    ('Bob',   100.00),
+    ('Alice', 125.00);
 
+-- Permet de calculer la somme des balances des users.
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+    
 --When
+-- SESSION 1
+
+UPDATE users
+SET balance = balance - 50
+WHERE name = 'Alice';
+
+UPDATE users
+SET balance = balance + 50
+WHERE name = 'Bob';
+
+SELECT name, balance
+FROM users
+WHERE name IN ('Alice', 'Bob')
+ORDER BY name;
+
+-- SESSION 2
+SELECT name, balance
+FROM users
+WHERE name IN ('Alice', 'Bob')
+ORDER BY name;
+
+-- SESSION 1
+COMMIT;
+
+SELECT name, balance
+FROM users
+WHERE name IN ('Alice', 'Bob')
+ORDER BY name;
+
+-- SESSION 2
+
+SELECT name, balance
+FROM users
+WHERE name IN ('Alice', 'Bob')
+ORDER BY name;
 
 --Then
+
+
+
 ```
 
 ### Scénario : Transfert d’argent entre deux comptes avec autocommit désactivé (deux sessions avec rollback)
