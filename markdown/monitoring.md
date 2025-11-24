@@ -22,10 +22,47 @@ Il s'agit de prouver par la pratique les points suivants:
 
 ## Scénario
 
--   (Given) Mettre en place la configuration de base et la DBB test avec une query dans l'historique
+Ces scripts sql doivent etre executer pour le bon fonctionnement des scénarios:
 
-[file to import testdb](../appendices/initDummyDatabase.sql)
-[file to import performance schema configuration](../appendices/configurePerformanceSchema.sql)
+-   [fichier pour importer la testdb](../appendices/initDummyDatabase.sql)
+
+-   [fichier pour importer la configuration performance schema](../appendices/configurePerformanceSchema.sql)
+
+### Mesurer le poids d'une requête (RAM)
+
+-   (Given) créer une nouvelle session
+
+Dans un nouveau terminal :
+
+```sql
+mysql -u username -p
+```
+
+```sql
+SET @cid = (SELECT CONNECTION_ID());
+SET @tid = (SELECT thread_id
+    FROM performance_schema.threads
+    WHERE PROCESSLIST_ID=@cid);
+```
+
+-   (When) évaluer la mémoire initial avant la requête et effectuer la requête
+
+La requête suivante est utilisé pour connaitre la consommation mémoire par les différents event MySQL. Ceci devrait être utilisé constament durant l'execution d'une requête (par un script par exemple) pour pouvoir monitorer la consommation mémoire.
+
+```sql
+SELECT
+    event_name,
+    current_number_of_bytes_used
+FROM performance_schema.memory_summary_by_thread_by_event_name
+WHERE thread_id = @tid
+ORDER BY current_number_of_bytes_used DESC
+```
+
+-   (Then) Rassembler la mémoire utilisé pendant l'exécution de la requête
+
+### Use case : Mesurer le temps d'exécution d'une requête (ms)
+
+-   (Given) Mettre en place la configuration de base et la DBB test avec une query dans l'historique
 
 ```sql
 SELECT
@@ -34,31 +71,36 @@ SELECT
     products.name AS product_name,
     products.price,
     orders.quantity,
-    (products.price * orders.quantity) AS total_price
+    (products.price * orders.quantity) AS total_price,
+    SHA2(CONCAT(users.email, products.name, orders.quantity), 256) AS hash
 FROM users
 JOIN orders
     ON users.id = orders.user_id
 JOIN products
     ON products.id = orders.product_id
-WHERE users.email LIKE '%example.com'
-ORDER BY users.last_name;
+CROSS JOIN (
+    SELECT 1 AS x
+    FROM orders
+    LIMIT 5000
+) AS workload_multiplier
+WHERE users.email LIKE '%example%'
+ORDER BY RAND();
 ```
 
--   (When) Récupérer la requête pour le temps en milliseconde
+-   (When) Rechercher la requête pour le temps en milliseconde
 
 ```sql
 SELECT EVENT_ID, TRUNCATE(TIMER_WAIT/1000000000,6) as Duration_MS, SQL_TEXT
-FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%example.com%';
+FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%example%';
 ```
 
-```sql
-SELECT event_name AS Stage, TRUNCATE(TIMER_WAIT/1000000000,6) AS Duration_MS
-FROM performance_schema.events_stages_history_long WHERE NESTING_EVENT_ID={Id_de_la_query_precedente};
-```
+-   (Then) Constater le temps d'exécution
 
--   (Then) Constater la liste des étapes et leur temps d'exécution
+Le temps en milisecondes devrait être affiché des requêtes contenant "example"
 
--   [ma vidéo de démonstartion](lien-vers-une-vidéo)
+## Vidéo
+
+-   [Vidéo de démonstartion](lien-vers-une-vidéo)
 
 ## Théorie et Sources
 
