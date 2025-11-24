@@ -103,7 +103,15 @@ SHOW ENGINE INNODB STATUS\G
 - Table transactions avec plusieurs miliers de lignes
 - Relever l’état initial du buffer pool :
 
+
+```bash
+# Restart le service pour vider le Buffer Pool
+docker restart mysql8
+docker exec -it mysql8 mysql -uroot -proot
+```
+
 ```sql
+use buffer_pool_db;
 SHOW ENGINE INNODB STATUS\G
 SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 ```
