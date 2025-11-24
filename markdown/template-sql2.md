@@ -49,10 +49,13 @@ source /tmp/script.sql;
 
 - Le service MySQL est démarré et la base de données de test est importée :
 
-```sql
+```bash
 docker compose up -d
 docker cp script.sql mysql8:/tmp/script.sql
 docker exec -it mysql8 mysql -uroot -proot
+```
+
+```sql
 source /tmp/script.sql;
 ```
 
