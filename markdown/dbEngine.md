@@ -40,7 +40,9 @@ INSERT INTO sql2.users(name, email) VALUES ("test", "test@test.com");
 
 L'utilisateur est présent sur l'instance 1 et l'instance 2
 
-[![](../appendices/federated/video.mov)](../appendices/federated/video.mov)
+<video controls>
+    <source src="../appendices/federated/video.mov" type="video/mp4">
+</video>
 
 ## Théorie et Sources
 
