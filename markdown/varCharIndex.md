@@ -40,27 +40,15 @@ WHERE stat_name = 'size' AND table_name LIKE "%users%"
 ORDER BY size_in_kb DESC;
 ```
 
-#### (Then) Le temps d'exécution de la requête en varchar prend 14% plus long.
-```
-Query_ID|Duration |Query                                          |
---------+---------+-----------------------------------------------+
-       2|0.0002185|SELECT * FROM users_int WHERE id = 543210      |
-       3|0.00025  |SELECT * FROM users_varchar WHERE id = '543210'|
-```
-#### (And) L'espace disque utilisé par les index est 66% plus grand pour les varchar.
-```
-database_name     |table_name   |index_name|size_in_kb|
-------------------+-------------+----------+----------+
-appdb             |users_varchar|PRIMARY   |   7696.00|
-appdb             |users_int    |PRIMARY   |   4624.00|
-```
-L'espace disque utilisé par les index est plus grand pour les varchar.
+#### (Then) Le temps d'exécution de la requête en varchar devrait prendre plus de temps.
+Puisque l'inex INT est plus petit en taille, il est plus rapide à parcourir car moins d'IO à effectuer.
 
 ### Insert into indexed INT vs indexed VARCHAR
 #### (Given) la base de données de tests est initialisée par le test précédent.
 #### (When) Je compare les performances de cette requête sur les 2 tables
 ```sql
 SET PROFILING = 1;
+
 INSERT INTO users_int (id, data) VALUES (1000001, 'Test User');
 INSERT INTO users_int (id, data) VALUES (1000002, 'Test User');
 INSERT INTO users_varchar (id, data) VALUES ('1000001', 'Test User');
@@ -68,15 +56,10 @@ INSERT INTO users_varchar (id, data) VALUES ('1000002', 'Test User');
 
 SHOW PROFILES;
 ```
-#### (Then) Le temps d'exécution de la requête en varchar prend en moyenne 13% plus long.
-```
-Query_ID|Duration |Query                                                                |
---------+---------+---------------------------------------------------------------------+
-      41|0.01825875|INSERT INTO users_int (id, data) VALUES (1000001, 'Test User')      |      
-      43|0.01706325|INSERT INTO users_int (id, data) VALUES (1000002, 'Test User')      |     
-      45|0.02246175|INSERT INTO users_varchar (id, data) VALUES ('1000001', 'Test User')|      
-      47|0.017766  |INSERT INTO users_varchar (id, data) VALUES ('1000002', 'Test User')|     
-```
+#### (Then) Le temps d'exécution de la requête en varchar devrait prendre plus de temps.
+Puisque l'inex VARCHAR est plus grand en taille, il est plus lent à mettre à jour car plus d'IO à effectuer et potentiellement plus de fragmentation.
+
+
 ### Delete from indexed INT vs indexed VARCHAR
 
 #### (Given) la base de données de tests est initialisée par le test précédent.
@@ -91,23 +74,11 @@ DELETE FROM users_int WHERE id = 1001;
 DELETE FROM users_varchar WHERE id = '1001';
 SHOW PROFILES;
 ```
-#### (Then) Le temps d'exécution de la requête en int prend en moyenne 11% plus long.
-```
-Query_ID|Duration  |Query                                       |
---------+----------+--------------------------------------------+
-      53|0.02650675|DELETE FROM users_int WHERE id = 101        | 
-      55|0.017342  |DELETE FROM users_varchar WHERE id = '101'  | 
-      57|0.01735625|DELETE FROM users_int WHERE id = 1001       |
-      59|0.0177745 |DELETE FROM users_varchar WHERE id = '1001' | 
-      62|0.021654  |DELETE FROM users_int WHERE id = 10001      |
-      64|0.017142  |DELETE FROM users_varchar WHERE id = '10001'|
-      66|0.0172425 |DELETE FROM users_int WHERE id = 10002      |
-      68|0.0217255 |DELETE FROM users_varchar WHERE id = '10002'|
-```
-Cependant, les données sont très variables et il est difficile de tirer une conclusion définitive.
+#### (Then) Le temps d'exécution de la requête en varchar devrait prendre plus de temps.
+Puisque l'inex VARCHAR est plus grand en taille, il est plus lent à mettre à jour car plus d'IO à effectuer et potentiellement plus de fragmentation.
 
 ### Utilisation de la ram
-Je n'ai pas réussi à mesurer de manière fiable la consommation de RAM entre les deux types d'index. Les variations sont trop importantes et les outils disponibles ne permettent pas une mesure précise dans ce contexte.
+Je n'ai pas réussi à mesurer de manière fiable la consommation de RAM entre les deux types d'index. Les variations sont trop importantes et les outils disponibles ne permettent pas une mesure précise dans ce contexte, mais l'allocation de RAM globale du serveur.
 
 [ma vidéo de démonstration](lien-vers-une-vidéo)
 
