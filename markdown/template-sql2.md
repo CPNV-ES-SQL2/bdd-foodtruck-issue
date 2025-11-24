@@ -22,12 +22,39 @@ Ce sujet d'étude a pour objectif d'approfondir les liens et les dépendances en
 
 --- 
 
+## Ouverture de session
+
+Une session est une connexion entre le client (terminal) et le serveur (mariadb).
+
+Pour s'y connecter :
+```bash
+mysql -h localhost -p1234 -u Bernard
+```
+
+Pour afficher la liste des session en cours :
+```mysql
+SHOW PROCESSLIST;
+```
+> Attention au droit des users, si un user ne possède pas les droits de voir les session, il ne verra que la sienne.
+
+Verifier les droits :
+```mysql
+SHOW GRANTS FOR 'Bernard'@'localhost';
+```
+Mettre les droits :
+```mysql
+GRANT PROCESS ON *.* TO 'Bernard'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+# Initialisation de la base de données (commune à tous les scénario)
+- La base de données `bank` existe.
+- La table `users` existe et est vide.
+
 ## autocommit
 ### Scénario : Transfert d’argent entre deux comptes avec autocommit désactivé (deux sessions avec commit)
 
 #### Given
-- La base de données `bank` existe.
-- La table `users` existe et est vide.
 - Bob possède un compte avec un solde de 100 CHF.
 - Alice possède un compte avec un solde de 125 CHF.
 - La session 1 a l’autocommit désactivé.
@@ -60,8 +87,6 @@ Ce sujet d'étude a pour objectif d'approfondir les liens et les dépendances en
 ### Scénario : Transfert d’argent entre deux comptes avec autocommit désactivé (deux sessions avec rollback)
 
 #### Given
-- La base de données `bank` existe.
-- La table `users` existe et est vide.
 - Diogo possède un compte avec un solde de 100 CHF.
 - Ralf possède un compte avec un solde de 125 CHF.
 - La session 1 a l’autocommit désactivé.
@@ -96,8 +121,6 @@ Ce sujet d'étude a pour objectif d'approfondir les liens et les dépendances en
 ### Scénario : Transfert d’argent avec transaction explicite entre deux sessions
 
 #### Given
-- La base de données `bank` existe.
-- La table `users` existe et est vide.
 - Mark possède un compte avec un solde de 100 CHF.
 - Brigitte possède un compte avec un solde de 125 CHF.
 - La session 1 utilise l’autocommit activé par défaut.
@@ -134,8 +157,6 @@ Ce sujet d'étude a pour objectif d'approfondir les liens et les dépendances en
 ### Scénario : Transfert avec savepoint et rollback partiel
 
 #### Given
-- La base de données `bank` existe.
-- La table `users` existe et est vide.
 - Julien possède un compte avec un solde de 50 CHF.
 - David possède un compte avec un solde de 200 CHF.
 - Guillaume possède un compte avec un solde de 150 CHF.
@@ -178,8 +199,8 @@ Ce sujet d'étude a pour objectif d'approfondir les liens et les dépendances en
 Ce test vérifie qu’avec l’autocommit activé, les modifications effectuées dans une transaction (y compris celles entourées d’un savepoint et d’un `ROLLBACK TO`) sont entièrement annulées par un `ROLLBACK` global.
 
 #### Given
-- La base de données `bank` existe.
-- La table `users` existe et est vide.
+
+- 
 - Chris possède un compte avec un solde de 50 CHF.
 - Arnold possède un compte avec un solde de 200 CHF.
 - Charlotte possède un compte avec un solde de 150 CHF.
@@ -223,8 +244,6 @@ Ce test vérifie qu’avec l’autocommit activé, les modifications effectuées
 ### Scénario : Transfert avec autocommit désactivé et commit implicite dû à une commande DDL
 
 #### Given
-- La base de données `bank` existe.
-- La table `users` existe et est vide.
 - Bernard possède un compte avec un solde de 100 CHF.
 - Alfred possède un compte avec un solde de 125 CHF.
 - La session 1 a l’autocommit désactivé.
