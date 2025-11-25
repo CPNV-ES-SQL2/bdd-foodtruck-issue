@@ -1,13 +1,15 @@
+USE transactionsample;
 SET @varInt = 1;
 SET @varDec = 1234.764;
-SET @varFloa = 0.12;
-SET @varNULL = NULL ;
 SET @varString = "Hello";
-SET @varJSON = 1; #todo
+SET @varJSON = '{
+  "accountno": "123456",
+  "funds": 250.75
+}';
 
-SELECT @varInt, @varDec, @varFloa, @varNULL, @varString, @varJSON;
+SELECT @varInt, @varDec, @varNULL, @varString, @varJSON,JSON_VALID(@varJSON);
 
-USE transactionsample;
+
 drop temporary table if exists foo;
-create temporary table foo select @varJSON; 
+create temporary table foo select @varInt, @varDec, @varNULL, @varString, @varJSON, @varNULL; 
 desc foo;
