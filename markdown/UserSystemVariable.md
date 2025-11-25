@@ -15,7 +15,7 @@ Il s'agit de prouver par la pratique ces points suivant:
 - Vérifier le contenu d'une variable en pleine exécution 
 ## Scénario pratique WIP
 
- ### Même transaction sur différent session avec différent variable (user-defined vs system-defined global vs dynamic) WIP
+ ### Réaliser la même transaction sur une session différente avec plusieurs différents types de variables (user-defined vs system-defined global vs dynamic) WIP
   
 * (Given) J'ai 2 scripts qui me permet comparer les 3 types de variables. Le premier déclare des variables a utiliser dans le second mais avec des portées différents
 
@@ -66,6 +66,8 @@ Résultat du select pour voir le contenu et si le JSON et valide
 | @varInt | @varDec  | @varNULL | @varString | @varJSON                                         | JSON_VALID(@varJSON) |
 |---------|----------|----------|------------|-------------------------------------------------|--------------------|
 | 1       | 1234.764 | NULL     | Hello      | { "accountno": "123456", "funds": 250.75 }     | 1                  |
+
+
 Résultat des différent types qui ont était associé aux variables :
 
 | Field      | Type           | Null |
