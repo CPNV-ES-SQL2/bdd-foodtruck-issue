@@ -1,23 +1,22 @@
 # Sujet d'étude
 
-(temp) User and System variables - [Tâche](https://github.com/CPNV-ES-SQL2/bdd-foodtruck-issue/issues/9)
-
 ## Introduction
 
-Ce sujet d'étude à pour objectif d'approfondir l'utilisation des variables en allant soit de crée ou modifier des variables d'utilisateurs et du système tout en ayant consciente du contexte a les utiliser et ainsi l'effet sur la persistance du contenu des variables 
-
+Ce sujet d'étude à pour objectif d'approfondir l'utilisation des variables en allant dans les différents utilités, qu'il s'agisse des types disponibles ou de leurs utilisations.
+Nous verrons notamment les possibles types de valeurs qu'elles peuvent contenir et aussi les différents méthode permettant de vérifier leur contenu durant l'exécution d'un script.
 
 ## Objectifs
 
 Il s'agit de prouver par la pratique ces points suivant:
 
-- De savoir dans quel contexte devrons nous utiliser soit les variables d'environnement d'un utilisateur, soit du système ou soit les 2 en même temps
-- La portée entre les 2 types de variables système (user-defined/session, global et dynamic)
-- Les différents types de valeur d'une variable peut avoir (erroné inclus)
-- De vérifier le contenu d'une variable en plein script 
+- Savoir dans quel contexte devrons nous utiliser les différents types de variables 
+- Comprendre la portée entre les différents type de variable (user-defined, system-defined global et dynamic)
+- Voir les différents types de valeur d'une variable peut avoir (erroné et personnalisé inclus)
+- Vérifier le contenu d'une variable en pleine exécution 
 ## Scénario pratique WIP
 
- ###  Transaction en déclarant une variable globale vs session vs dynamic 
+ ### Même transaction sur différent session avec différent variable (user-defined vs system-defined global vs dynamic) WIP
+  
 * (Given) J'ai 2 scripts qui me permet comparer les 3 types de variables. Le premier déclare des variables a utiliser dans le second mais avec des portées différents
 
 [file to import testdb](fichier.sql)
@@ -25,50 +24,61 @@ Il s'agit de prouver par la pratique ces points suivant:
 * (When) Quand je change de session 
 
 ```sql
---do file
+--do file sql
 ```
 
 * (Then) 
 
 ```sql
---result of the transaction depending of changed session
+--result of the transaction for each context after changing session
 ```
 
 
 * [ma vidéo de démonstartion](lien-vers-une-vidéo)
-### Convertion des types erronés de valeurs des variables
+### Conversion des types erronés de valeurs des variables
 
-* (Given) J'execute ce script remplie de différent type de valeur dans une variable dont une qui ne fait
-[Fichier des types de valeurs d'une variable](types_variables.sql) (fix path)
+* (Given) Je veux exécuter ce script remplie de fill-in de valeur dans les variables afin de voir la conversion pour le cas d'un JSON
+[Fichier des types de valeurs d'une variable](\appendices\types_variables.sql) *fix path*
 
-* (When) Dès lorsque j'execute l'entièreté du script
+* (When) Dès lorsque l'exécution du script
 
 ```sql
 SET @varInt = 1;
 SET @varDec = 1234.764;
-SET @varFloa = 0.12;
-SET @varNULL = NULL ;
 SET @varString = "Hello";
-SET @varJSON = 1; #todo
+SET @varJSON = '{
+  "accountno": "123456",
+  "funds": 250.75
+}';
+
+SELECT @varInt, @varDec, @varNULL, @varString, @varJSON,JSON_VALID(@varJSON);
 
 
-SELECT @varInt, @varDec, @varFloa, @varNULL, @varString, @varJSON
-```
-
-* (Then) Je peux remarqué que la variable @varJSON a un type string à la place de JSON
-
-```sql
 drop temporary table if exists foo;
-create temporary table foo select @varJSON; --add the rest 
+create temporary table foo select @varInt, @varDec, @varNULL, @varString, @varJSON; 
 desc foo;
-
---show result when done by table
 ```
 
+* (Then) Je peux remarquer que la variable @varJSON a été converti en un type string
+
+Résultat du select pour voir le contenu et si le JSON et valide
+
+| @varInt | @varDec  | @varNULL | @varString | @varJSON                                         | JSON_VALID(@varJSON) |
+|---------|----------|----------|------------|-------------------------------------------------|--------------------|
+| 1       | 1234.764 | NULL     | Hello      | { "accountno": "123456", "funds": 250.75 }     | 1                  |
+Résultat des différent types qui ont était associé aux variables :
+
+| Field      | Type           | Null |
+| ---------- | -------------- | ---- |
+| @varInt    | bigint         | YES  |
+| @varDec    | decimal(65,30) | YES  |
+| @varNULL   | longtext       | YES  |
+| @varString | longtext       | YES  |
+| @varJSON   | longtext       | YES  |
 
 ### Vérifier le contenu d'une variable durant l'exécution
  (Given) J'ai à disposition un script qui modifie une variable en hexa et j'aimerai vérifier que la valeur est correctement défini dans la variable avant chaque action 
-[Fichier des types de valeurs d'une variable](types_variables.sql) (fix path)
+[Fichier des types de valeurs d'une variable](types_variables.sql) *fix path*
 
 * (When) Dès lorsque j'execute l'entièreté du script
 
