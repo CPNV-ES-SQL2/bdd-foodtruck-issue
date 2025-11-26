@@ -277,6 +277,17 @@ SHOW ENGINE INNODB STATUS\G
 
 ### Scénario 5 : Optimiser les performances de requêtes
 
+> Restart le service pour vider le Buffer Pool
+
+```bash
+docker restart mysql8
+docker exec -it mysql8 mysql -uroot -proot
+```
+
+```sql
+use buffer_pool_db;
+```
+
 **Given**
 
 - Buffer Pool correctement dimensionné (par ex. 1GB)
