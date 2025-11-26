@@ -303,6 +303,11 @@ SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 ```
 
+> À noter :
+> - `Innodb_buffer_pool_reads` → lectures physiques (disque)
+> - `Innodb_buffer_pool_read_requests` → lectures logiques (RAM)
+> - Pages occupées dans le Buffer Pool
+
 **When**
 
 - Exécuter une requête complexe sur plusieurs colonnes indexées
@@ -312,19 +317,34 @@ SELECT client_id, SUM(amount)
 FROM transactions 
 WHERE transaction_date >= '2025-01-01' 
 GROUP BY client_id;
+
+SELECT SQL_NO_CACHE client_id, 
+       COUNT(*) AS nb,
+       SUM(amount) AS total,
+       AVG(amount) AS moyenne
+FROM transactions
+WHERE transaction_date >= NOW() - INTERVAL 3 MONTH
+GROUP BY client_id
+ORDER BY total DESC
+LIMIT 50;
+
 ```
 
 **Then (expected)**
 
-- Diminution du temps de réponse
-- Amélioration du hit ratio :
-  - Augmentation `Innodb_buffer_pool_read_requests`
-  - Faible ou nulle augmentation de `Innodb_buffer_pool_reads`
-- Pages nécessaires stockées en mémoire
+Après les requêtes, relever à nouveau les métriques :
 
 ```sql
 SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+SHOW ENGINE INNODB STATUS\G
 ```
+
+- Diminution du temps de réponse grâce à la capacité du Buffer Pool à garder davantage de pages mémoire
+- Amélioration du hit ratio :
+  - Augmentation `Innodb_buffer_pool_read_requests`
+  - Faible ou nulle augmentation de `Innodb_buffer_pool_reads`
+- Augmentation des `Database pages` dans le Buffer Pool -> les requêtes range-scan et group-by mettent énormément de pages en mémoire
+- Faible éviction de pages (LRU) -> Check avec `Pages made young` et `Pages not young`
 
 ---
 
