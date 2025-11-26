@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Ce sujet d'étude à pour objectif d'approfondir .....
+Ce sujet d'étude à pour objectif d'approfondir le fonctionnement du Buffer Pool dans InnoDB.
 
 ## Objectifs
 
