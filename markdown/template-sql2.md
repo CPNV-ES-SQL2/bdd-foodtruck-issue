@@ -310,7 +310,7 @@ SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 ```sql
 SELECT client_id, SUM(amount) 
 FROM transactions 
-WHERE date >= '2025-01-01' 
+WHERE transaction_date >= '2025-01-01' 
 GROUP BY client_id;
 ```
 
