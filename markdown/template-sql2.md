@@ -95,6 +95,8 @@ SELECT * FROM transactions;
 SHOW ENGINE INNODB STATUS\G
 ```
 
+[Vidéo de démonstration](../videos/scenario-1.webm)
+
 ---
 
 ### Scénario 2 : Mesurer l’impact de la taille du Buffer Pool
@@ -212,6 +214,8 @@ SELECT * FROM transactions WHERE id = 4;
 SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 ```
 
+[Vidéo de démonstration](../videos/scenario-3.webm)
+
 ---
 
 ### Scénario 4 : Identifier des problèmes de performance avec un Buffer Pool trop petit
@@ -272,6 +276,8 @@ SHOW ENGINE INNODB STATUS\G
 ```
 
 **Expected :** performances nettement dégradées, nombreux aller-retours disque.
+
+[Vidéo de démonstration](../videos/scenario-4.webm)
 
 ---
 
@@ -343,9 +349,9 @@ SHOW ENGINE INNODB STATUS\G
 - Augmentation des `Database pages` dans le Buffer Pool -> les requêtes range-scan et group-by mettent énormément de pages en mémoire
 - Faible éviction de pages (LRU) -> Check avec `Pages made young` et `Pages not young`
 
----
+[Vidéo de démonstration](../videos/scenario-5.webm)
 
-* [ma vidéo de démonstartion](lien-vers-une-vidéo)
+---
 
 ## Théorie et Sources
 
