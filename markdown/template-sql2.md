@@ -300,6 +300,7 @@ SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 - Vérifier l’état initial du buffer pool :
 
 ```sql
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 SHOW ENGINE INNODB STATUS\G
 ```
 
@@ -313,11 +314,6 @@ SHOW ENGINE INNODB STATUS\G
 - Exécuter une requête complexe sur plusieurs colonnes indexées
 
 ```sql
-SELECT client_id, SUM(amount) 
-FROM transactions 
-WHERE transaction_date >= '2025-01-01' 
-GROUP BY client_id;
-
 SELECT SQL_NO_CACHE client_id, 
        COUNT(*) AS nb,
        SUM(amount) AS total,
@@ -327,8 +323,9 @@ WHERE transaction_date >= NOW() - INTERVAL 3 MONTH
 GROUP BY client_id
 ORDER BY total DESC
 LIMIT 50;
-
 ```
+
+> Pourquoi `SQL_NO_CACHE` ? -> Pour forcer MySQL à lire réellement depuis InnoDB, et ne pas utiliser le Query Cache
 
 **Then (expected)**
 
@@ -351,7 +348,8 @@ SHOW ENGINE INNODB STATUS\G
 
 ## Théorie et Sources
 
-Source : [MySQL Buffer Pool](https://dev.mysql.com/doc/refman/8.4/en/innodb-buffer-pool.html)
+- [MySQL Buffer Pool](https://dev.mysql.com/doc/refman/8.4/en/innodb-buffer-pool.html)
+- [MySQL Query Cache](https://dev.mysql.com/doc/refman/5.7/en/query-cache.html)
 
 > Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)  
 > **Source MySQL !!!!**
