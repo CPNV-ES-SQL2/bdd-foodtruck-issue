@@ -173,13 +173,23 @@ SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 
 ### Scénario 3 : Observer la réduction des accès disque
 
+> Restart le service pour vider le Buffer Pool
+
+```bash
+docker restart mysql8
+docker exec -it mysql8 mysql -uroot -proot
+```
+
+```sql
+use buffer_pool_db;
+```
+
 **Given**
 
 - Table transactions déjà chargée dans le Buffer Pool
 
 ```sql
-SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_reads';
-SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool_read_requests';
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 ```
 
 **When**
