@@ -216,6 +216,23 @@ SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 
 ### Scénario 4 : Identifier des problèmes de performance avec un Buffer Pool trop petit
 
+> Restart le service pour vider le Buffer Pool
+
+```bash
+docker restart mysql8
+docker exec -it mysql8 mysql -uroot -proot
+```
+
+```sql
+use buffer_pool_db;
+
+-- Set la taille à 512Mo
+SET GLOBAL innodb_buffer_pool_size = 536870912;
+
+-- Vérifier que la taille est modifiée
+SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
+```
+
 **Given**
 
 - Réduire la taille du Buffer Pool à une valeur très faible
