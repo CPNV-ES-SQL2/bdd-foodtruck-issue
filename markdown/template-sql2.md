@@ -221,7 +221,9 @@ SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 - Réduire la taille du Buffer Pool à une valeur très faible
 
 ```sql
-SET GLOBAL innodb_buffer_pool_size = 4194304; -- 4 Mo
+SET GLOBAL innodb_buffer_pool_size = 134217728; -- 128 Mo
+
+-- Vérifier que la taille est bien appliquée
 SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 ```
 
@@ -236,7 +238,7 @@ SHOW ENGINE INNODB STATUS\G
 - Lancer des requêtes sur la table volumineuse
 
 ```sql
-SELECT * FROM transactions WHERE montant > 10;
+SELECT * FROM transactions WHERE montant > 2;
 ```
 
 **Then (expected)**
