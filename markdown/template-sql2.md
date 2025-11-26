@@ -23,12 +23,12 @@ Ce sujet d'étude a pour objectif d'approfondir les liens et les dépendances en
 --- 
 
 ## Ouverture de session
-
+[Vidéo youtube](https://www.youtube.com/watch?v=mlbRdRLwYV0)
 Une session est une connexion entre le client (terminal) et le serveur (mariadb).
 
 Pour s'y connecter :
 ```bash
-mysql -h localhost -p1234 -u Bernard
+mysql -h localhost -u julienschneider
 ```
 
 Pour afficher la liste des session en cours :
@@ -39,22 +39,24 @@ SHOW PROCESSLIST;
 
 Verifier les droits :
 ```mysql
-SHOW GRANTS FOR 'Bernard'@'localhost';
+SHOW GRANTS FOR 'exemple'@'localhost';
 ```
 Mettre les droits :
 ```mysql
-GRANT PROCESS ON *.* TO 'Bernard'@'localhost';
+GRANT PROCESS ON *.* TO 'exemple'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-> Pour les différents scénarios, les sessions sont réalisé avec deux utilisateurs différents.
+> Pour les différents scénarios, les sessions sont réalisé avec le même utilisateur. Cela n'affecte aucunement les scénarios car l'isolation se fait par connexion/session, pas par utilisateur.
 
 # Initialisation de la base de données (commune à tous les scénarios)
+[Vidéo youtube](https://youtu.be/HH3pXFejI3s)
 - La base de données `bank` existe.
 - La table `users` existe et est vide.
 
 ```mysql
 -- GIVEN : la base de données `bank` existe
+SELECT @@autocommit;
 DROP DATABASE IF EXISTS bank;
 CREATE DATABASE bank;
 USE bank;
@@ -71,7 +73,7 @@ CREATE TABLE users (
 
 ## autocommit
 ### Scénario : Transfert d’argent entre deux comptes avec autocommit désactivé (deux sessions avec commit)
-
+[Vidéo youtube](https://www.youtube.com/watch?v=eChCsiNQQ0w)
 #### Given
 - Bob possède un compte avec un solde de 100 CHF.
 - Alice possède un compte avec un solde de 125 CHF.
@@ -105,6 +107,9 @@ VALUES
 SELECT SUM(balance) AS total_balance
 FROM users;
 
+SELECT @@autocommit;
+SET autocommit = 0;
+SELECT @@autocommit;
     
 --When
 -- SESSION 1
@@ -142,10 +147,6 @@ SELECT name, balance
 FROM users
 WHERE name IN ('Alice', 'Bob')
 ORDER BY name;
-
---Then
-
-
 
 ```
 
