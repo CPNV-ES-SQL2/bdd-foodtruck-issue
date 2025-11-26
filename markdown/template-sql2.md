@@ -255,7 +255,7 @@ SHOW ENGINE INNODB STATUS\G
 - Lancer des requêtes sur la table volumineuse
 
 ```sql
-SELECT * FROM transactions WHERE montant > 2;
+SELECT * FROM transactions WHERE amount > 2;
 ```
 
 **Then (expected)**
@@ -308,7 +308,7 @@ SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 - Exécuter une requête complexe sur plusieurs colonnes indexées
 
 ```sql
-SELECT client_id, SUM(montant) 
+SELECT client_id, SUM(amount) 
 FROM transactions 
 WHERE date >= '2025-01-01' 
 GROUP BY client_id;
