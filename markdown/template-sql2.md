@@ -332,6 +332,7 @@ LIMIT 50;
 Après les requêtes, relever à nouveau les métriques :
 
 ```sql
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 SHOW ENGINE INNODB STATUS\G
 ```
 
