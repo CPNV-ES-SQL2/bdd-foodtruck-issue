@@ -300,7 +300,7 @@ SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 - Vérifier l’état initial du buffer pool :
 
 ```sql
-SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+SHOW ENGINE INNODB STATUS\G
 ```
 
 > À noter :
@@ -335,7 +335,6 @@ LIMIT 50;
 Après les requêtes, relever à nouveau les métriques :
 
 ```sql
-SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 SHOW ENGINE INNODB STATUS\G
 ```
 
