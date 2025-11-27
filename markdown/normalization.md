@@ -13,9 +13,6 @@ Il s'agit de prouver par la pratique les points suivants:
   - Es-ce que certaines dépendances jointives existent ?
 - Comment normaliser une base de données pour respecter ces formes normales ?
   - Définir des scénarios d'une base de données non normalisée puis appliquer les migrations nécessaires pour atteindre la forme normale souhaitée.
-- Quel est l'impact de la normalisation sur les performances (temps de réponse) et la taille des requêtes ?
-  - Définir les différence entre un SELECT avant et après normalisation. (ex: nombre de jointures nécessaires)
-  - Définir les différence entre un INSERT, UPDATE avant et après normalisation.
 
 ## Scénario
 ### Scénario 1: Identification de la violation de la BCNF.
