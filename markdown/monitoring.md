@@ -92,7 +92,6 @@ CROSS JOIN (
     FROM orders
     LIMIT 10000
 ) AS workload_multiplier
-WHERE users.email LIKE '%example%';
 ```
 
 -   (When) Rechercher la requête pour le temps en milliseconde
@@ -133,7 +132,6 @@ CROSS JOIN (
     FROM orders
     LIMIT 10000
 ) AS workload1_multiplier
-WHERE users.email LIKE '%example%';
 ```
 
 ```sql
@@ -221,11 +219,25 @@ ORDER BY
 
 ### Diagnostiquer des requêtes pour les optimiser
 
--   (Given)
+Sources:
+https://dev.mysql.com/doc/refman/8.4/en/performance-schema-examples.html
 
--   (When)
+-   (Given) Une série de requêtes sont exécuté
 
--   (Then)
+-   (When) Inspecter les requêtes pour voir les plus couteuse
+
+```sql
+SELECT
+  digest_text,
+  COUNT_STAR AS exec_count,
+  ROUND(AVG_TIMER_WAIT/1e9, 3) AS avg_ms,
+  ROUND(SUM_TIMER_WAIT/1e9, 3) AS total_ms
+FROM performance_schema.events_statements_summary_by_digest
+ORDER BY avg_ms DESC
+LIMIT 5;
+```
+
+-   (Then) Optimiser la requête et voir le résultat
 
 ## Vidéo
 
