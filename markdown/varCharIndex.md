@@ -23,13 +23,38 @@ Il s'agit de prouver par la pratique les points suivants:
 #### (Given) Importer ce script d'initalisation de la base de données de tests
 
 [file to import testdb](../appendices/mysqlscript.sql)
+##### Pour activer le performance schema
+
+Activer le performance schema dans le fichier de configuration my.cnf ou my.ini
+
+```
+[mysqld]
+performance_schema=ON
+performance-schema-instrument='memory/%=COUNTED'
+```   
 
 #### (When) Je compare les performances de cette requête sur les 2 tables
 
 ```sql
 SET PROFILING = 1;
-SELECT * FROM users_int WHERE id = 543210;
-SELECT * FROM users_varchar WHERE id = '543210';
+SELECT * FROM users_int WHERE id = 54310;
+SELECT * FROM users_int WHERE id = 54311;
+SELECT * FROM users_int WHERE id = 54312;
+SELECT * FROM users_int WHERE id = 54313;
+SELECT * FROM users_int WHERE id = 54314;
+SELECT * FROM users_int WHERE id = 54315;
+SELECT * FROM users_int WHERE id = 54316;
+SELECT * FROM users_int WHERE id = 54317;
+SELECT * FROM users_int WHERE id = 54318;
+SELECT * FROM users_varchar WHERE id = '54310';
+SELECT * FROM users_varchar WHERE id = '54311';
+SELECT * FROM users_varchar WHERE id = '54312';
+SELECT * FROM users_varchar WHERE id = '54313';
+SELECT * FROM users_varchar WHERE id = '54314';
+SELECT * FROM users_varchar WHERE id = '54315';
+SELECT * FROM users_varchar WHERE id = '54316';
+SELECT * FROM users_varchar WHERE id = '54317';
+SELECT * FROM users_varchar WHERE id = '54318';
 
 SHOW PROFILES;
 
@@ -49,10 +74,24 @@ Puisque l'inex INT est plus petit en taille, il est plus rapide à parcourir car
 ```sql
 SET PROFILING = 1;
 
-INSERT INTO users_int (id, data) VALUES (1000001, 'Test User');
-INSERT INTO users_int (id, data) VALUES (1000002, 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('1000001', 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('1000002', 'Test User');
+INSERT INTO users_int (id, data) VALUES (420000001, 'Test User');
+INSERT INTO users_int (id, data) VALUES (420000002, 'Test User');
+INSERT INTO users_int (id, data) VALUES (420000003, 'Test User');
+INSERT INTO users_int (id, data) VALUES (420000004, 'Test User');
+INSERT INTO users_int (id, data) VALUES (420000005, 'Test User');
+INSERT INTO users_int (id, data) VALUES (420000006, 'Test User');
+INSERT INTO users_int (id, data) VALUES (420000007, 'Test User');
+INSERT INTO users_int (id, data) VALUES (420000008, 'Test User');
+INSERT INTO users_int (id, data) VALUES (420000009, 'Test User');
+INSERT INTO users_varchar (id, data) VALUES ('420000001', 'Test User');
+INSERT INTO users_varchar (id, data) VALUES ('420000002', 'Test User');
+INSERT INTO users_varchar (id, data) VALUES ('420000003', 'Test User');
+INSERT INTO users_varchar (id, data) VALUES ('420000004', 'Test User');
+INSERT INTO users_varchar (id, data) VALUES ('420000005', 'Test User');
+INSERT INTO users_varchar (id, data) VALUES ('420000006', 'Test User');
+INSERT INTO users_varchar (id, data) VALUES ('420000007', 'Test User');
+INSERT INTO users_varchar (id, data) VALUES ('420000008', 'Test User');
+INSERT INTO users_varchar (id, data) VALUES ('420000009', 'Test User');
 
 SHOW PROFILES;
 ```
@@ -68,10 +107,24 @@ Puisque l'inex VARCHAR est plus grand en taille, il est plus lent à mettre à j
 
 ```sql
 SET PROFILING = 1;
-DELETE FROM users_int WHERE id = 101;
-DELETE FROM users_varchar WHERE id = '101';
-DELETE FROM users_int WHERE id = 1001;
-DELETE FROM users_varchar WHERE id = '1001';
+DELETE FROM users_int WHERE id = 420000001;
+DELETE FROM users_int WHERE id = 420000002;
+DELETE FROM users_int WHERE id = 420000003;
+DELETE FROM users_int WHERE id = 420000004;
+DELETE FROM users_int WHERE id = 420000005;
+DELETE FROM users_int WHERE id = 420000006;
+DELETE FROM users_int WHERE id = 420000007;
+DELETE FROM users_int WHERE id = 420000008;
+DELETE FROM users_int WHERE id = 420000009;
+DELETE FROM users_varchar WHERE id = '420000001';
+DELETE FROM users_varchar WHERE id = '420000002';
+DELETE FROM users_varchar WHERE id = '420000003';
+DELETE FROM users_varchar WHERE id = '420000004';
+DELETE FROM users_varchar WHERE id = '420000005';
+DELETE FROM users_varchar WHERE id = '420000006';
+DELETE FROM users_varchar WHERE id = '420000007';
+DELETE FROM users_varchar WHERE id = '420000008';
+DELETE FROM users_varchar WHERE id = '420000009';
 SHOW PROFILES;
 ```
 #### (Then) Le temps d'exécution de la requête en varchar devrait prendre plus de temps.
@@ -79,7 +132,13 @@ Puisque l'inex VARCHAR est plus grand en taille, il est plus lent à mettre à j
 
 ### Utilisation de la ram
 Je n'ai pas réussi à mesurer de manière fiable la consommation de RAM entre les deux types d'index. Les variations sont trop importantes et les outils disponibles ne permettent pas une mesure précise dans ce contexte, mais l'allocation de RAM globale du serveur.
-
+#### Outils etudies pour mesurer la RAM
+| Outil                                                        | Retenu   | Justification                                                         |
+| ------------------------------------------------------------ | -------- | --------------------------------------------------------------------- |
+| performance_schema                                           | Non      | Effectue de mesures de l'usage de memoir non spécifique à une requête |
+| https://docs.percona.com/percona-monitoring-and-management/2 | Non      | Outil de monitoring global, pas de mesure par requête                 |
+| https://profilesql.com/use/                                  | A tester | Outil tiers prometteur pour des analyses plus fines                   |
+| EXPLAIN ANALYZE                                              | Non      | Ne fournit pas d'information sur la RAM utilisée                      |
 [ma vidéo de démonstration](lien-vers-une-vidéo)
 
 ## Théorie et Sources
