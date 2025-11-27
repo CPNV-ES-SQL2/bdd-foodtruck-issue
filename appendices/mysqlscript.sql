@@ -14,6 +14,7 @@ CREATE TABLE users_varchar (
 ) ENGINE = InnoDB;
 -- Insérer 100k de lignes dans les deux tables
 DROP PROCEDURE IF EXISTS fill_tables;
+DELIMITER //
 CREATE PROCEDURE fill_tables() BEGIN
 DECLARE i INT DEFAULT 1;
 START TRANSACTION;
@@ -25,5 +26,6 @@ VALUES (CAST(i AS CHAR), CONCAT('data-', i));
 SET i = i + 1;
 END WHILE;
 COMMIT;
-END;
+END //
+DELIMITER ;
 CALL fill_tables();
