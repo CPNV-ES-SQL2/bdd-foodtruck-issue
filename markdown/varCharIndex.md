@@ -145,6 +145,20 @@ Je n'ai pas réussi à mesurer de manière fiable la consommation de RAM entre l
 [Mise en place de la database](https://youtu.be/cSMaOUgi2As)
 [Tests de performance](https://youtu.be/7YIYA1VJKf0)
 
+### Résultats hors vidéo
+Les tests peuvent être impactés par les processus concurrents de la machine. Notamment lors de l'enregistrement d'écran.
+
+Voici un rapport des différences de temps d'executions effectués en dehors d'un enregistrement d'écran.
+- Tests de select
+  - Les select dans un index int ont duré en moyenne 0,12 ms
+  - Les select dans un index varchar ont duré en moyenne 0,14 ms
+- Tests d'insert
+  - Les insert dans un index int ont duré en moyenne 0,164 ms
+  - Les insert dans un index varchar ont duré en moyenne 0,166 ms
+- Tests de delete
+  - Les delete dans un index int ont duré en moyenne 15,01 ms
+  - Les insert dans un index varchar ont duré en moyenne 12,26 ms
+  - Lors de la video les deletes ont duré 13,52 ms pour les int et 14,42 ms pour les varchar. Nous pouvons donc voir ici une grande variance dans les résultats...
 ## Théorie et Sources
 
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
