@@ -19,11 +19,14 @@ Il s'agit de prouver par la pratique ces points suivant:
 
 *idée : 2 scripts, l'un fini via un set d'une variable, le 2nd commence avec l'utilisation de celui-ci. doit se foirer si NULL ou rien. 2 sessions nécessaire*
 
-* (Given) J'ai 2 scripts qui me permet comparer les 3 types de variables. Le premier déclare des variables a utiliser dans le second mais avec des portées différents
+[Script setup](scenario1_setup.sql)
+* (Given) J'initialise la db avec des données de test, je prépare 2 sessions différente et j'execute le 1er script seulement dans l'un des 2
 
-[file to import testdb](fichier.sql)
+```sql
+--do file sql
+```
 
-* (When) Quand je change de session 
+* (When) J'execute le 2nd script sur les 2 sessions
 
 ```sql
 --do file sql

@@ -1,0 +1,1 @@
+SELECT @total_point / (select count(DISTINCT firstname) from resultstudent ) 
