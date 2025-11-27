@@ -123,30 +123,21 @@ SET balance = balance + 50
 WHERE name = 'Bob';
 
 SELECT name, balance
-FROM users
-WHERE name IN ('Alice', 'Bob')
-ORDER BY name;
+FROM users;
 
 -- SESSION 2
 SELECT name, balance
-FROM users
-WHERE name IN ('Alice', 'Bob')
-ORDER BY name;
+FROM users;
 
 -- SESSION 1
 COMMIT;
 
 SELECT name, balance
-FROM users
-WHERE name IN ('Alice', 'Bob')
-ORDER BY name;
-
+FROM users;
 -- SESSION 2
 
 SELECT name, balance
-FROM users
-WHERE name IN ('Alice', 'Bob')
-ORDER BY name;
+FROM users;
 
 ```
 
@@ -160,7 +151,7 @@ ORDER BY name;
 - La somme totale des soldes est de 225 CHF.
 
 #### When
-- Dans la session 1, j’effectue un transfert de 50 CHF du compte d’Ralf vers le compte de Diogo, sans encore valider la transaction.
+- Dans la session 1, j’effectue un transfert de 50 CHF du compte de Ralf vers le compte de Diogo, sans encore valider la transaction.
 - Dans la session 1, je consulte les soldes de Diogo et Ralf.
 - Dans la session 2, je consulte les soldes de Diogo et Ralf.
 - Dans la session 1, je valide la transaction avec `ROLLBACK`.
@@ -177,10 +168,57 @@ ORDER BY name;
 
 ```sql
 -- Given
+INSERT INTO users (name, balance)
+VALUES
+    ('Diogo',   100.00),
+    ('Ralf', 125.00);
+
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+SELECT @@autocommit;
+SET autocommit = 0;
+SELECT @@autocommit;
 
 --When
+-- SESSION 1
+
+UPDATE users
+SET balance = balance - 50
+WHERE name = 'Ralf';
+
+UPDATE users
+SET balance = balance + 50
+WHERE name = 'Diogo';
+
+SELECT name, balance
+FROM users;
+
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+-- SESSION 2
+
+SELECT name, balance
+FROM users;
+
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+-- SESSION 1
+ROLLBACK;
 
 --Then
+
+-- SESSION 1
+
+SELECT name, balance
+FROM users;
+
+-- SESSION 2
+
+SELECT name, balance
+FROM users;
 ```
 
 ## transaction
@@ -213,10 +251,59 @@ ORDER BY name;
 
 ```sql
 -- Given
+INSERT INTO users (name, balance)
+VALUES
+    ('Mark',   100.00),
+    ('Brigitte', 125.00);
+
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+SELECT @@autocommit;
 
 --When
+-- SESSION 1
+START TRANSACTION;
+
+UPDATE users
+SET balance = balance - 50
+WHERE name = 'Brigitte';
+
+UPDATE users
+SET balance = balance + 50
+WHERE name = 'Mark';
+
+SELECT name, balance
+FROM users;
+
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+-- SESSION 2
+SELECT name, balance
+FROM users;
+
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+-- SESSION 1
+COMMIT;
 
 --Then
+-- SESSION 1
+SELECT name, balance
+FROM users;
+
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+-- SESSION 2
+SELECT name, balance
+FROM users;
+
+SELECT SUM(balance) AS total_balance
+FROM users;
+
 ```
 
 ## save point
@@ -255,10 +342,56 @@ ORDER BY name;
 
 ```sql
 -- Given
+INSERT INTO users (name, balance)
+VALUES
+    ('Julien',   50.00),
+    ('David', 200.00),
+    ('Guillaume', 150.00);
 
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+SELECT @@autocommit;
 --When
+START TRANSACTION;
 
---Then
+UPDATE users
+SET balance = balance - 50
+WHERE name = 'Guillaume';
+
+UPDATE users
+SET balance = balance + 50
+WHERE name = 'Julien';
+
+SELECT name, balance
+FROM users;
+
+SAVEPOINT backup_one;
+
+UPDATE users
+SET balance = balance - 25
+WHERE name = 'Guillaume';
+
+UPDATE users
+SET balance = balance + 25
+WHERE name = 'David';
+
+SELECT name, balance
+FROM users;
+
+ROLLBACK TO backup_one;
+
+SELECT name, balance
+FROM users;
+
+COMMIT;
+
+-- THEN
+SELECT name, balance
+FROM users;
+
+SELECT SUM(balance) AS total_balance
+FROM users;
 ```
 
 ### Scénario : Transfert avec savepoint, rollback partiel et finaliter avec rollback complet.
@@ -266,7 +399,6 @@ Ce test vérifie qu’avec l’autocommit activé, les modifications effectuées
 
 #### Given
 
-- 
 - Chris possède un compte avec un solde de 50 CHF.
 - Arnold possède un compte avec un solde de 200 CHF.
 - Charlotte possède un compte avec un solde de 150 CHF.
@@ -300,10 +432,56 @@ Ce test vérifie qu’avec l’autocommit activé, les modifications effectuées
 
 ```sql
 -- Given
+INSERT INTO users (name, balance)
+VALUES
+    ('Chris',   50.00),
+    ('Arnold', 200.00),
+    ('Charlotte', 150.00);
 
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+SELECT @@autocommit;
 --When
+START TRANSACTION;
 
---Then
+UPDATE users
+SET balance = balance - 50
+WHERE name = 'Charlotte';
+
+UPDATE users
+SET balance = balance + 50
+WHERE name = 'Chris';
+
+SELECT name, balance
+FROM users;
+
+SAVEPOINT backup_one;
+
+UPDATE users
+SET balance = balance - 25
+WHERE name = 'Charlotte';
+
+UPDATE users
+SET balance = balance + 25
+WHERE name = 'Arnold';
+
+SELECT name, balance
+FROM users;
+
+ROLLBACK TO backup_one;
+
+SELECT name, balance
+FROM users;
+
+ROLLBACK;
+
+-- THEN
+SELECT name, balance
+FROM users;
+
+SELECT SUM(balance) AS total_balance
+FROM users;
 ```
 
 ## IMPLICIT commit
@@ -350,6 +528,20 @@ Ce test vérifie qu’avec l’autocommit activé, les modifications effectuées
 
 ```sql
 -- Given
+INSERT INTO users (name, balance)
+VALUES
+    ('Bernard',   100.00),
+    ('Alfred', 125.00);
+
+SELECT SUM(balance) AS total_balance
+FROM users;
+
+SELECT @@autocommit;
+SET autocommit = 0;
+SELECT @@autocommit;
+
+SELECT SUM(balance) AS total_balance
+FROM users;
 
 --When
 
