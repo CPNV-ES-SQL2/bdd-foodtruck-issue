@@ -73,7 +73,7 @@ CREATE TABLE users (
 
 ## autocommit
 ### Scénario : Transfert d’argent entre deux comptes avec autocommit désactivé (deux sessions avec commit)
-[Vidéo youtube](https://www.youtube.com/watch?v=eChCsiNQQ0w)
+[Vidéo youtube](https://youtu.be/9tH-AWtS1ek?si=1gTMaIzyYuUrjGIr)
 #### Given
 - Bob possède un compte avec un solde de 100 CHF.
 - Alice possède un compte avec un solde de 125 CHF.
