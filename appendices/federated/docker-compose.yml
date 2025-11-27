@@ -1,7 +1,7 @@
 services:
-  mysql-1:
+  mysql-remote:
     image: mysql:lts
-    container_name: mysql-1
+    container_name: mysql-remote
     ports:
       - 3306:3306
     environment:
@@ -9,11 +9,11 @@ services:
       MYSQL_PASSWORD: BigPassword
       MYSQL_ROOT_PASSWORD: BigPassword
     volumes:
-      - mysql-1-data:/var/lib/mysql
+      - mysql-remote-data:/var/lib/mysql
 
-  mysql-2:
+  mysql-local:
     image: mysql:lts
-    container_name: mysql-2
+    container_name: mysql-local
     ports:
       - 3307:3306
     environment:
@@ -22,8 +22,8 @@ services:
       MYSQL_ROOT_PASSWORD: BigPassword
     volumes:
       - ./config:/etc/mysql/conf.d
-      - mysql-2-data:/var/lib/mysql
+      - mysql-local-data:/var/lib/mysql
 
 volumes:
-  mysql-1-data:
-  mysql-2-data:
+  mysql-remote-data:
+  mysql-local-data:

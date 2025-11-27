@@ -24,9 +24,9 @@ Il s'agit de prouver par la pratique les points suivants:
 
 2 instances de MySQL sont lancées. ([docker-compose](../appendices/federated/docker-compose.yml))
 
-[Ce script](../appendices/federated/script-mysql-1.sql) doit être exécuté sur l'instance 1
+[Ce script](../appendices/federated/script-mysql-remote.sql) doit être exécuté sur l'instance remote
 
-[Ce script](../appendices/federated/script-mysql-2.sql) doit être exécuté sur l'instance 2
+[Ce script](../appendices/federated/script-mysql-local.sql) doit être exécuté sur l'instance local
 
 > **WHEN**
 
@@ -40,7 +40,7 @@ INSERT INTO sql2.users(name, email) VALUES ("test", "test@test.com");
 
 L'utilisateur est présent sur l'instance 1 et accessible depuis l'instance 2
 
-[Voir la vidéo ici](https://www.youtube.com/watch?v=UtqCwinturg)
+[Voir la vidéo ici](https://www.youtube.com/watch?v=brIwz8YFUC4)
 
 ## Théorie et Sources
 
