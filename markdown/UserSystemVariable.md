@@ -2,21 +2,23 @@
 
 ## Introduction
 
-Ce sujet d'étude à pour objectif d'approfondir l'utilisation des variables en allant dans les différents utilités, qu'il s'agisse des types disponibles ou de leurs utilisations.
-Nous verrons notamment les possibles types de valeurs qu'elles peuvent contenir et aussi les différents méthode permettant de vérifier leur contenu durant l'exécution d'un script.
+Ce sujet d'étude à pour objectif d'approfondir sur l'utilisation d'une variable d'utilisateur et système
 
 ## Objectifs
 
 Il s'agit de prouver par la pratique ces points suivant:
 
-- Savoir dans quel contexte devrons nous utiliser les différents types de variables 
-- Comprendre la portée entre les différents type de variable (user-defined, system-defined global et dynamic)
-- Voir les différents types de valeur d'une variable peut avoir (erroné et personnalisé inclus)
-- Vérifier le contenu d'une variable en pleine exécution 
+- Identifier la portée et le rôle d'une variable user-defined
+- Identifier la portée et le rôle d'une variable system 
+- Identifier les différents types de valeur qu'une variable user-defined peut contenir.
+- Debugger un script en pleine exécution afin de vérifier le contenu d'une variable
 ## Scénario pratique WIP
 
- ### Réaliser la même transaction sur une session différente avec plusieurs différents types de variables (user-defined vs system-defined global vs dynamic) WIP
-  
+### Démontrer la portée et le rôle des variables user-defined 
+
+
+*idée : 2 scripts, l'un fini via un set d'une variable, le 2nd commence avec l'utilisation de celui-ci. doit se foirer si NULL ou rien. 2 sessions nécessaire*
+
 * (Given) J'ai 2 scripts qui me permet comparer les 3 types de variables. Le premier déclare des variables a utiliser dans le second mais avec des portées différents
 
 [file to import testdb](fichier.sql)
@@ -35,12 +37,36 @@ Il s'agit de prouver par la pratique ces points suivant:
 
 
 * [ma vidéo de démonstartion](lien-vers-une-vidéo)
-### Conversion des types erronés de valeurs des variables
 
-* (Given) Je veux exécuter ce script remplie de fill-in de valeur dans les variables afin de voir la conversion pour le cas d'un JSON
+### Démontrer la portée et le rôle des variables système 
+
+
+*idée : 2 scripts, l'un défini une variable system, le 2nd utilise. 2 DIFFERENT résultat si on/off. 2 sessions nécessaire*
+*system var utilisable : auto_increment_offset, offline_mode *
+* (Given) J'ai 2 scripts qui me permet comparer les 3 types de variables. Le premier déclare des variables a utiliser dans le second mais avec des portées différents
+
+[file to import testdb](fichier.sql)
+
+* (When) Quand je change de session 
+
+```sql
+--do file sql
+```
+
+* (Then) 
+
+```sql
+--result of the transaction for each context after changing session
+```
+
+
+* [ma vidéo de démonstartion](lien-vers-une-vidéo)
+### Démontrer les différents types de valeurs qu'une variable user-defined peut avoir
+
+* (Given) Je veux exécuter ce script remplie de fill-in de valeur dans les variables afin de voir la conversion en cas de type non valide
 [Fichier des types de valeurs d'une variable](\appendices\types_variables.sql) *fix path*
 
-* (When) Dès lorsque l'exécution du script
+* (When) Dès lorsque l'exécution de ce script
 
 ```sql
 SET @varInt = 1;
@@ -59,14 +85,13 @@ create temporary table foo select @varInt, @varDec, @varNULL, @varString, @varJS
 desc foo;
 ```
 
-* (Then) Je peux remarquer que la variable @varJSON a été converti en un type string
+* (Then) Je peux remarquer que la variable @varJSON a été converti en un type string à la place d'avoir un type JSON
 
-Résultat du select pour voir le contenu et si le JSON et valide
+Résultat du select pour voir le contenu et ainsi de vérifier si le JSON est valide
 
 | @varInt | @varDec  | @varNULL | @varString | @varJSON                                         | JSON_VALID(@varJSON) |
 |---------|----------|----------|------------|-------------------------------------------------|--------------------|
 | 1       | 1234.764 | NULL     | Hello      | { "accountno": "123456", "funds": 250.75 }     | 1                  |
-
 
 Résultat des différent types qui ont était associé aux variables :
 
@@ -79,7 +104,10 @@ Résultat des différent types qui ont était associé aux variables :
 | @varJSON   | longtext       | YES  |
 
 ### Vérifier le contenu d'une variable durant l'exécution
+
  (Given) J'ai à disposition un script qui modifie une variable en hexa et j'aimerai vérifier que la valeur est correctement défini dans la variable avant chaque action 
+
+*utiliser plusieurs methode?*
 [Fichier des types de valeurs d'une variable](types_variables.sql) *fix path*
 
 * (When) Dès lorsque j'execute l'entièreté du script
@@ -94,8 +122,6 @@ Résultat des différent types qui ont était associé aux variables :
 ```sql
 -- show result of EACH before-stepn°X
 ```
-(temp)Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
-
 
 ## Théorie et Sources
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
