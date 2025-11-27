@@ -28,7 +28,12 @@ Ces scripts sql doivent etre executer pour le bon fonctionnement des scénarios:
 
 -   [fichier pour importer la configuration performance schema](../appendices/configurePerformanceSchema.sql)
 
+[source](https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html)
+
 ### Mesurer le poids d'une requête (RAM)
+
+Source:
+https://planetscale.com/blog/profiling-memory-usage-in-mysql
 
 -   (Given) créer une nouvelle session
 
@@ -62,9 +67,13 @@ ORDER BY current_number_of_bytes_used DESC
 
 ### Use case : Mesurer le temps d'exécution d'une requête (ms)
 
+Source:
+https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
+
 -   (Given) Mettre en place la configuration de base et la DBB test avec une query dans l'historique
 
 ```sql
+USE demo_db;
 SELECT
     users.first_name,
     users.last_name,
@@ -81,22 +90,142 @@ JOIN products
 CROSS JOIN (
     SELECT 1 AS x
     FROM orders
-    LIMIT 5000
+    LIMIT 10000
 ) AS workload_multiplier
-WHERE users.email LIKE '%example%'
-ORDER BY RAND();
+WHERE users.email LIKE '%example%';
 ```
 
 -   (When) Rechercher la requête pour le temps en milliseconde
 
 ```sql
 SELECT EVENT_ID, TRUNCATE(TIMER_WAIT/1000000000,6) as Duration_MS, SQL_TEXT
-FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%example%';
+FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%workload_multiplier%';
 ```
 
 -   (Then) Constater le temps d'exécution
 
 Le temps en milisecondes devrait être affiché des requêtes contenant "example"
+
+### Comparer des requêtes sur leur temps d'exécution
+
+Source:
+https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
+
+-   (Given) Exécuter les deux requêtes à comparer
+
+```sql
+USE demo_db;
+SELECT
+    users.first_name,
+    users.last_name,
+    products.name AS product_name,
+    products.price,
+    orders.quantity,
+    (products.price * orders.quantity) AS total_price,
+    SHA2(CONCAT(users.email, products.name, orders.quantity), 256) AS hash
+FROM users
+JOIN orders
+    ON users.id = orders.user_id
+JOIN products
+    ON products.id = orders.product_id
+CROSS JOIN (
+    SELECT 1 AS x
+    FROM orders
+    LIMIT 10000
+) AS workload1_multiplier
+WHERE users.email LIKE '%example%';
+```
+
+```sql
+SELECT
+    users.first_name,
+    users.last_name,
+    products.name AS product_name,
+    products.price,
+    orders.quantity,
+    (products.price * orders.quantity) AS total_price,
+    SHA2(SHA2(CONCAT(users.email, products.name, orders.quantity), 256), 256) AS double_hash
+FROM users
+JOIN orders
+    ON users.id = orders.user_id
+JOIN products
+    ON products.id = orders.product_id
+CROSS JOIN (
+    SELECT 1 AS x
+    FROM orders
+    LIMIT 10000
+) AS workload2_multiplier
+WHERE users.email LIKE '%example%';
+```
+
+-   (When) Récupérer l'event id des deux requêtes et récupérer le temps d'éxecution par étapes
+
+```sql
+SELECT EVENT_ID
+FROM performance_schema.events_statements_history_long WHERE SQL_TEXT LIKE '%workload1_multiplier%';
+```
+
+```sql
+SELECT EVENT_ID
+FROM performance_schema.events_statements_history_long WHERE SQL_TEXT LIKE '%workload2_multiplier%';
+```
+
+```sql
+SET @event_q1 = <event_id_from_first_query>;
+SET @event_q2 = <event_id_from_second_query>;
+```
+
+```sql
+WITH
+statement AS (
+  SELECT EVENT_ID, SQL_TEXT, TRUNCATE(TIMER_WAIT/1e9, 3) AS total_ms
+  FROM performance_schema.events_statements_history_long
+  WHERE EVENT_ID IN (@event_q1, @event_q2)
+),
+stages AS (
+  SELECT NESTING_EVENT_ID AS event_id,
+         EVENT_NAME AS stage,
+         TRUNCATE(TIMER_WAIT/1e9, 3) AS ms
+  FROM performance_schema.events_stages_history_long
+  WHERE NESTING_EVENT_ID IN (@event_q1, @event_q2)
+),
+all_stages AS (
+  SELECT DISTINCT stage FROM stages
+)
+
+SELECT
+  a.stage,
+  COALESCE(s1.ms, 0) AS q1_ms,
+  COALESCE(s2.ms, 0) AS q2_ms,
+  (COALESCE(s2.ms, 0) - COALESCE(s1.ms, 0)) AS diff_ms
+FROM all_stages a
+LEFT JOIN (SELECT stage, ms FROM stages WHERE event_id = @event_q1) s1 USING (stage)
+LEFT JOIN (SELECT stage, ms FROM stages WHERE event_id = @event_q2) s2 USING (stage)
+
+UNION ALL
+
+SELECT
+  'TOTAL' AS stage,
+  (SELECT total_ms FROM statement WHERE EVENT_ID = @event_q1) AS q1_ms,
+  (SELECT total_ms FROM statement WHERE EVENT_ID = @event_q2) AS q2_ms,
+  (SELECT total_ms FROM statement WHERE EVENT_ID = @event_q2)
+    - (SELECT total_ms FROM statement WHERE EVENT_ID = @event_q1)
+  AS diff_ms
+
+ORDER BY
+  CASE WHEN stage = 'TOTAL' THEN 2 ELSE 1 END,
+  stage;
+```
+
+-   (Then) Comparer les résultats du temps d'exécution par étapes
+
+### Diagnostiquer des requêtes pour les optimiser
+
+-   (Given)
+
+-   (When)
+
+-   (Then)
 
 ## Vidéo
 
