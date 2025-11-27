@@ -40,7 +40,7 @@ INSERT INTO sql2.users(name, email) VALUES ("test", "test@test.com");
 
 L'utilisateur est présent sur l'instance 1 et accessible depuis l'instance 2
 
-[Vidéo](../appendices/federated/video.mov)
+[Voir la vidéo ici](https://www.youtube.com/watch?v=UtqCwinturg)
 
 ## Théorie et Sources
 
