@@ -139,14 +139,14 @@ Je n'ai pas réussi à mesurer de manière fiable la consommation de RAM entre l
 | https://docs.percona.com/percona-monitoring-and-management/2 | Non      | Outil de monitoring global, pas de mesure par requête                 |
 | https://profilesql.com/use/                                  | A tester | Outil tiers prometteur pour des analyses plus fines                   |
 | EXPLAIN ANALYZE                                              | Non      | Ne fournit pas d'information sur la RAM utilisée                      |
-[ma vidéo de démonstration](lien-vers-une-vidéo)
+
+### Vidéo de démonstration
+
+[Mise en place de la database](https://youtu.be/cSMaOUgi2As)
+[Tests de performance](https://youtu.be/7YIYA1VJKf0)
 
 ## Théorie et Sources
 
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
 
 Source MySQL !!!!
-
-```
-Comment mesure le temps de la requête
-```
