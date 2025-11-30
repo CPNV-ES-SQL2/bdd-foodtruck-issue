@@ -10,13 +10,13 @@ Il s'agit de prouver par la pratique les points suivants:
 
 1. Comprendre le rôle du Buffer Pool dans InnoDB : observer comment InnoDB utilise la mémoire pour stocker les pages de données et d’index afin d’améliorer les performances.
 
-2. Mesurer l’impact de la taille du Buffer Pool : comparer les temps de lecture/écriture sur une table volumineuse avec différentes tailles de `innodb_buffer_pool_size`.
+2. Optimiser les performances de requêtes : expérimenter avec différentes configurations du Buffer Pool pour constater l’impact sur les temps de requête et la charge I/O.
 
 3. Observer la réduction des accès disque grâce au Buffer Pool : analyser le nombre de lectures logiques vs physiques (Buffer Pool hit ratio) à l’aide de `SHOW ENGINE INNODB STATUS` ou des métriques `INNODB_BUFFER_POOL_HIT_RATIO`.
 
 4. Identifier des problèmes de performance liés à un Buffer Pool trop petit : simuler une charge importante sur une table InnoDB et constater les ralentissements dus aux lectures fréquentes depuis le disque.
-
-5. Optimiser les performances de requêtes : expérimenter avec différentes configurations du Buffer Pool pour constater l’impact sur les temps de requête et la charge I/O.
+   
+5. Mesurer l’impact de la taille du Buffer Pool : comparer les temps de lecture/écriture sur une table volumineuse avec différentes tailles de `innodb_buffer_pool_size`.
 
 ## Scénarios
 
@@ -65,6 +65,8 @@ use buffer_pool_db;
 
 - Vérifier l’état initial du Buffer Pool :
 
+> The \G sequence also terminates queries, but causes mysql to display query results in a vertical style that shows each output row with each column value on a separate line.
+
 ```sql
 SHOW ENGINE INNODB STATUS\G
 ```
@@ -99,11 +101,7 @@ SHOW ENGINE INNODB STATUS\G
 
 ---
 
-### Scénario 2 : Mesurer l’impact de la taille du Buffer Pool
-
-**Given**
-- Table transactions avec plusieurs miliers de lignes
-- Relever l’état initial du buffer pool :
+### Scénario 2 (ancien 5) : Optimiser les performances de requêtes
 
 > Restart le service pour vider le Buffer Pool
 
@@ -114,62 +112,66 @@ docker exec -it mysql8 mysql -uroot -proot
 
 ```sql
 use buffer_pool_db;
+```
 
--- Set la taille à 512Mo
-SET GLOBAL innodb_buffer_pool_size = 536870912;
+**Given**
 
--- Vérifier que la taille est modifiée
+- Buffer Pool correctement dimensionné (par ex. 1GB)
+
+```sql
+SET GLOBAL innodb_buffer_pool_size = 1073741824; -- Octets
 SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 ```
+
+- Vérifier l’état initial du buffer pool :
+
+```sql
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+SHOW ENGINE INNODB STATUS\G
+```
+
+> À noter :
+> - `Innodb_buffer_pool_reads` -> lectures physiques (disque) : Ce sont les lectures que MySQL doit aller chercher sur le disque parce que la page n’est pas dans le Buffer Pool.
+> - `Innodb_buffer_pool_read_requests` -> lectures logiques (RAM) : Ce sont les lectures que MySQL peut satisfaire directement depuis le Buffer Pool (mémoire RAM).
+> - Pages occupées dans le Buffer Pool
 
 **When**
 
-- Exécuter la requête de test pour charger le Buffer Pool :
+- Exécuter une requête complexe sur plusieurs colonnes indexées
 
 ```sql
-SELECT COUNT(*)
-FROM transactions t1
-CROSS JOIN transactions t2
-WHERE t1.amount > 1
-  AND t2.amount < 3;
+SELECT SQL_NO_CACHE client_id, 
+       COUNT(*) AS nb,
+       SUM(amount) AS total,
+       AVG(amount) AS moyenne
+FROM transactions
+WHERE transaction_date >= NOW() - INTERVAL 3 MONTH
+GROUP BY client_id
+ORDER BY total DESC
+LIMIT 50;
 ```
 
-- Relever l’état du Buffer Pool après la requête :
-
-```sql
-SHOW ENGINE INNODB STATUS\G;
-SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
-```
-
-- Changer la taille du Buffer Pool à 128Mo et répéter le test :
-
-```sql
-SET GLOBAL innodb_buffer_pool_size = 134217728;
-
--- Vérifier que la taille est bien appliquée
-SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
-
--- Refaire la même requête CROSS JOIN
-SELECT COUNT(*)
-FROM transactions t1
-CROSS JOIN transactions t2
-WHERE t1.amount > 1
-  AND t2.amount < 3;
-
--- Relever l’état du Buffer Pool après la requête
-SHOW ENGINE INNODB STATUS\G;
-SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
-```
+> Pourquoi `SQL_NO_CACHE` ? -> Pour forcer MySQL à lire réellement depuis InnoDB, et ne pas utiliser le Query Cache
 
 **Then (expected)**
-- Comparer :
-  - Temps d’exécution des requêtes
-  - Lectures physiques (`Innodb_buffer_pool_reads`)
-  - Hits mémoire (`Innodb_buffer_pool_read_ahead`, `Innodb_buffer_pool_read_requests`)
 
-**Expected :**
-- Plus le Buffer Pool est petit → plus les lectures disque augmentent → latence plus élevée.  
-- Buffer Pool plus grand → plus de lectures logiques → meilleure performance
+Après les requêtes, relever à nouveau les métriques :
+
+```sql
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+SHOW ENGINE INNODB STATUS\G
+```
+
+- Diminution du temps de réponse grâce à la capacité du Buffer Pool à garder davantage de pages mémoire
+- Amélioration du hit ratio (Le hit ratio indique le pourcentage de lectures MySQL faites en RAM (logiques) -> plus il est haut, plus MySQL est rapide):
+  - Augmentation `Innodb_buffer_pool_read_requests`
+  - Faible ou nulle augmentation de `Innodb_buffer_pool_reads`
+- Augmentation des `Database pages` dans le Buffer Pool -> les requêtes range-scan et group-by mettent énormément de pages en mémoire
+- Faible éviction de pages (LRU) -> Check avec `Pages made young` et `Pages not young`
+
+> Calcul Hit Ratio : `Hit Ratio = 1 - (Innodb_buffer_pool_reads / Innodb_buffer_pool_read_requests)`
+
+[Vidéo de démonstration](https://youtu.be/t0pAVWvVDtg)
 
 ---
 
@@ -197,9 +199,24 @@ SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
 **When**
 
 - Exécuter plusieurs fois la même requête SELECT
+  - Création, appel et suppression de la procédure
 
 ```sql
-SELECT * FROM transactions WHERE id = 4;
+DELIMITER $$
+
+CREATE PROCEDURE tmp_loop()
+BEGIN
+  DECLARE i INT DEFAULT 1;
+  WHILE i <= 5 DO
+    SELECT * FROM transactions WHERE id = 4;
+    SET i = i + 1;
+  END WHILE;
+END$$
+
+DELIMITER ;
+
+CALL tmp_loop();
+DROP PROCEDURE tmp_loop;
 ```
 
 **Then (expected)**
@@ -231,7 +248,7 @@ docker exec -it mysql8 mysql -uroot -proot
 use buffer_pool_db;
 
 -- Set la taille à 512Mo
-SET GLOBAL innodb_buffer_pool_size = 536870912;
+SET GLOBAL innodb_buffer_pool_size = 536870912; -- Octets
 
 -- Vérifier que la taille est modifiée
 SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
@@ -242,7 +259,8 @@ SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 - Réduire la taille du Buffer Pool à une valeur très faible
 
 ```sql
-SET GLOBAL innodb_buffer_pool_size = 134217728; -- 128 Mo
+-- 128 Mo
+SET GLOBAL innodb_buffer_pool_size = 134217728; -- Octets
 
 -- Vérifier que la taille est bien appliquée
 SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
@@ -281,7 +299,11 @@ SHOW ENGINE INNODB STATUS\G
 
 ---
 
-### Scénario 5 : Optimiser les performances de requêtes
+### Scénario 5 (ancien 2) : Mesurer l’impact de la taille du Buffer Pool
+
+**Given**
+- Table transactions avec plusieurs miliers de lignes
+- Relever l’état initial du buffer pool :
 
 > Restart le service pour vider le Buffer Pool
 
@@ -292,64 +314,62 @@ docker exec -it mysql8 mysql -uroot -proot
 
 ```sql
 use buffer_pool_db;
-```
 
-**Given**
+-- Set la taille à 512Mo
+SET GLOBAL innodb_buffer_pool_size = 536870912; -- Octets
 
-- Buffer Pool correctement dimensionné (par ex. 1GB)
-
-```sql
-SET GLOBAL innodb_buffer_pool_size = 1073741824;
+-- Vérifier que la taille est modifiée
 SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
 ```
 
-- Vérifier l’état initial du buffer pool :
-
-```sql
-SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
-SHOW ENGINE INNODB STATUS\G
-```
-
-> À noter :
-> - `Innodb_buffer_pool_reads` → lectures physiques (disque)
-> - `Innodb_buffer_pool_read_requests` → lectures logiques (RAM)
-> - Pages occupées dans le Buffer Pool
-
 **When**
 
-- Exécuter une requête complexe sur plusieurs colonnes indexées
+- Exécuter la requête de test pour charger le Buffer Pool :
 
 ```sql
-SELECT SQL_NO_CACHE client_id, 
-       COUNT(*) AS nb,
-       SUM(amount) AS total,
-       AVG(amount) AS moyenne
-FROM transactions
-WHERE transaction_date >= NOW() - INTERVAL 3 MONTH
-GROUP BY client_id
-ORDER BY total DESC
-LIMIT 50;
+SELECT COUNT(*)
+FROM transactions t1
+CROSS JOIN transactions t2
+WHERE t1.amount > 1
+  AND t2.amount < 3;
 ```
 
-> Pourquoi `SQL_NO_CACHE` ? -> Pour forcer MySQL à lire réellement depuis InnoDB, et ne pas utiliser le Query Cache
+- Relever l’état du Buffer Pool après la requête :
+
+```sql
+SHOW ENGINE INNODB STATUS\G;
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+```
+
+- Changer la taille du Buffer Pool à 128Mo et répéter le test :
+
+```sql
+SET GLOBAL innodb_buffer_pool_size = 134217728; -- Octets
+
+-- Vérifier que la taille est bien appliquée
+SHOW GLOBAL VARIABLES LIKE 'innodb_buffer_pool_size';
+
+-- Refaire la même requête CROSS JOIN
+SELECT COUNT(*)
+FROM transactions t1
+CROSS JOIN transactions t2
+WHERE t1.amount > 1
+  AND t2.amount < 3;
+
+-- Relever l’état du Buffer Pool après la requête
+SHOW ENGINE INNODB STATUS\G;
+SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
+```
 
 **Then (expected)**
+- Comparer :
+  - Temps d’exécution des requêtes
+  - Lectures physiques (`Innodb_buffer_pool_reads`)
+  - Hits mémoire (`Innodb_buffer_pool_read_ahead`, `Innodb_buffer_pool_read_requests`)
 
-Après les requêtes, relever à nouveau les métriques :
-
-```sql
-SHOW GLOBAL STATUS LIKE 'Innodb_buffer_pool%';
-SHOW ENGINE INNODB STATUS\G
-```
-
-- Diminution du temps de réponse grâce à la capacité du Buffer Pool à garder davantage de pages mémoire
-- Amélioration du hit ratio :
-  - Augmentation `Innodb_buffer_pool_read_requests`
-  - Faible ou nulle augmentation de `Innodb_buffer_pool_reads`
-- Augmentation des `Database pages` dans le Buffer Pool -> les requêtes range-scan et group-by mettent énormément de pages en mémoire
-- Faible éviction de pages (LRU) -> Check avec `Pages made young` et `Pages not young`
-
-[Vidéo de démonstration](https://youtu.be/t0pAVWvVDtg)
+**Expected :**
+- Plus le Buffer Pool est petit → plus les lectures disque augmentent → latence plus élevée.  
+- Buffer Pool plus grand → plus de lectures logiques → meilleure performance
 
 ---
 
@@ -357,9 +377,10 @@ SHOW ENGINE INNODB STATUS\G
 
 - [MySQL Buffer Pool](https://dev.mysql.com/doc/refman/8.4/en/innodb-buffer-pool.html)
 - [MySQL Query Cache](https://dev.mysql.com/doc/refman/5.7/en/query-cache.html)
-
-> Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)  
-> **Source MySQL !!!!**
+- [InnoDB Standard Monitor and Lock Monitor Output](https://dev.mysql.com/doc/refman/8.4/en/innodb-standard-monitor.html)
+- [SHOW ENGINE Statement](https://dev.mysql.com/doc/refman/8.4/en/show-engine.html)
+- [What is difference between \g and \G characters in mysql client program?](https://www.mysqlfaqs.net/mysql-faqs/Client-Server-Commands/What-is-difference-between-g-and-G-characters-in-mysql-client-program)
+- [Configuring InnoDB Buffer Pool Size](https://dev.mysql.com/doc/refman/8.4/en/innodb-buffer-pool-resize.html)
 
 ---
 
