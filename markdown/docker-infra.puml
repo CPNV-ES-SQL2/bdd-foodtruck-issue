@@ -1,0 +1,24 @@
+@startuml
+skinparam rectangleStyle round
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+
+title Architecture Docker - MySQL + Volume
+
+rectangle "Host Machine" {
+  
+  component "Port 3307" as hostPort
+  
+  rectangle "Docker" {
+    
+    component "Container: mysql8\nImage: mysql:8.0\nPort 3306" as container
+
+    database "Volume: mysql_data\n(/var/lib/mysql)" as volume
+  }
+}
+
+hostPort --> container : Port mapping\n3307 → 3306
+container --> volume : Persistent storage
+
+@enduml
