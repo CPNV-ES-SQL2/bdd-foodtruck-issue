@@ -1,16 +1,6 @@
 CREATE TABLE Students (
   student_id INT PRIMARY KEY,
-  name VARCHAR(100) UNIQUE NOT NULL,
-);
-
-CREATE TABLE Students_Courses (
-  student_id INT,
-  course_id INT,
-  instructor_id INT,
-  PRIMARY KEY (student_id, course_id),
-  FOREIGN KEY (student_id) REFERENCES Students(student_id),
-  FOREIGN KEY (course_id) REFERENCES Courses(course_id),  
-  FOREIGN KEY (instructor_id) REFERENCES Instructors(instructor_id)
+  name VARCHAR(100) UNIQUE NOT NULL
 );
 
 CREATE TABLE Instructors (
@@ -23,12 +13,22 @@ CREATE TABLE Courses (
   title VARCHAR(100)
 );
 
-INSERT INTO Students (student_id, email, firstname, lastname) VALUES
+CREATE TABLE Students_Courses (
+  student_id INT,
+  course_id INT,
+  instructor_id INT,
+  PRIMARY KEY (student_id, course_id),
+  FOREIGN KEY (student_id) REFERENCES Students(student_id),
+  FOREIGN KEY (course_id) REFERENCES Courses(course_id),  
+  FOREIGN KEY (instructor_id) REFERENCES Instructors(instructor_id)
+);
+
+INSERT INTO Students (student_id, name) VALUES
 (1, 'Ethann'),
 (2, 'Julien'),
 (3, 'Nathan');
 
-INSERT INTO Instructors (instructor_id, firstname, lastname) VALUES
+INSERT INTO Instructors (instructor_id, name) VALUES
 (1, 'Nicolas'),
 (2, 'Julien');
 
