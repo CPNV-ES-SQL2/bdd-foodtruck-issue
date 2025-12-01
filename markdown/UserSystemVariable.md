@@ -14,32 +14,52 @@ Il s'agit de prouver par la pratique ces points suivant:
 - Debugger un script en pleine exécution afin de vérifier le contenu d'une variable
 ## Scénario pratique WIP
 
-### Démontrer la portée et le rôle des variables user-defined 
+#### Scénario 1 : Démontrer la portée et le rôle des variables user-defined 
 
 
 *idée : 2 scripts, l'un fini via un set d'une variable, le 2nd commence avec l'utilisation de celui-ci. doit se foirer si NULL ou rien. 2 sessions nécessaire*
 
 [Script setup](scenario1_setup.sql)
-* (Given) J'initialise la db avec des données de test, je prépare 2 sessions différente et j'execute le 1er script seulement dans l'un des 2
+
+- step to set up
+
+* __Given__ : J'initialise la db avec des données de test, je prépare 2 sessions différente :
+	* Session 1 : A *déjà* exécuté le [1er script](scenario1_1.sql) et a set une user-defined variable
+	* Session 2 : N'a pas exécuté le 1er script
 
 ```sql
---do file sql
+-- Session 1 only :
+SET @total_point := (select sum(points) from resultstudent);
 ```
 
-* (When) J'execute le 2nd script sur les 2 sessions
+- Je vérifie que j'ai bien les 2 sessions actifs :
 
 ```sql
---do file sql
+--do cmd show all actives sessions + result (MAKE SURE TO KILL BEFOREHAND)
+SHOW PROCESSLIST
+
+--result
 ```
 
-* (Then) 
+* __When__ : J'exécute le [2ème script](scenario1_2.sql) sur les 2 sessions
 
 ```sql
---result of the transaction for each context after changing session
+SELECT @total_point / (select count(DISTINCT firstname) from resultstudent) AS result
 ```
 
+* __Then__ : Uniquement la session 2 devrait causer une erreur MySQL
 
-* [ma vidéo de démonstartion](lien-vers-une-vidéo)
+```sql
+-- Session 1
+| result |
+| ------- |
+| 7.2     |
+
+-- Session 2
+-- result of S2 -> error by another operation
+```
+
+* [ma vidéo de démonstartion](Scénario1-USV)
 
 ### Démontrer la portée et le rôle des variables système 
 
@@ -92,9 +112,9 @@ desc foo;
 
 Résultat du select pour voir le contenu et ainsi de vérifier si le JSON est valide
 
-| @varInt | @varDec  | @varNULL | @varString | @varJSON                                         | JSON_VALID(@varJSON) |
-|---------|----------|----------|------------|-------------------------------------------------|--------------------|
-| 1       | 1234.764 | NULL     | Hello      | { "accountno": "123456", "funds": 250.75 }     | 1                  |
+| @varInt | @varDec  | @varNULL | @varString | @varJSON                                   | JSON_VALID(@varJSON) |
+| ------- | -------- | -------- | ---------- | ------------------------------------------ | -------------------- |
+| 1       | 1234.764 | NULL     | Hello      | { "accountno": "123456", "funds": 250.75 } | 1                    |
 
 Résultat des différent types qui ont était associé aux variables :
 
