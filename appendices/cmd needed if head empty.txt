@@ -1,8 +1,11 @@
-chemin cmd -> easier use of source
+quelque cmd si nécessaire durant prés. ou autre moment
+mysql  Ver 8.0.44 for Win64 on x86_64 (MySQL Community Server - GPL)
+
+chemin cmd to appendices -> easier use of source cmd
 "C:\Users\pr28mdn\Desktop\SQL2\bdd-foodtruck-issue\appendices"
 connection to MySQL, you should know the pwd
 mysql -u sql2 -p -h localhost 
 use correct db
 use sql2sce1;
 Execute script 
-source *.sql
+source *nomfichier*.sql
