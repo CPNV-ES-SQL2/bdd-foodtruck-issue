@@ -17,15 +17,11 @@ Ce sujet d'étude a pour objectif d'approfondir les liens et les dépendances en
 ## Définition de dépendances
 
 >Pour garantir l’atomicité des opérations sur la base de données, on peut utiliser les transactions et le mode autocommit, qui sont étroitement liés, car tous deux servent à assurer que les modifications sont appliquées de manière cohérente et indivisible.
-
-**_Définition à faire valider._**
-
 --- 
 
 ## Ouverture de session
-[Vidéo youtube](https://www.youtube.com/watch?v=mlbRdRLwYV0)
 Une session est une connexion entre le client (terminal) et le serveur (mariadb).
-Ce qui défini l'unicité d'une connexion est son `Thread`.
+Ce qui défini l'unicité d'une connexion son les `Thread`.
 Un thread ne fait pas que “stocker la requête et le résultat”, il porte tout le contexte de session + transaction + 
 exécution : utilisateur, variables de session, transaction courante, locks, erreurs/état, etc.
 
@@ -35,7 +31,7 @@ Les threads sont géré par un `Connection manager`, il gère :
 - Quelle connexion sera lié avec quels threads.
 - La réutilisation / fin des threads.
 
-Nous avons pas de pouvoir de décision sur les threads utiliser, par contre nous pouvons modifier des paramètres :
+Nous n'avons pas de pouvoir de décision sur les threads utiliser, par contre, nous pouvons modifier des paramètres :
 - `SHOW PROCESSLIST;` permet de lister les threads utiliser.
 - `max_connections` nombre maximal de connexions simultanées, “un thread par connexion” nombre maximum de threads de traitement.
 - `thread_cache_size` combien de threads inactifs MySQL garde en cache pour les réutiliser.
@@ -45,21 +41,24 @@ Pour s'y connecter :
 mysql -h localhost -u julienschneider
 ```
 
-Pour afficher la liste des session en cours :
+Pour afficher la liste des sessions en cours :
 ```mysql
 SHOW PROCESSLIST;
 ```
-> Attention au droit des users, si un user ne possède pas les droits de voir les session, il ne verra que la sienne.
+> Attention au droit des users, si un user ne possède pas les droits de voir les sessions, il ne verra que la sienne.
 
 Verifier les droits :
 ```mysql
-SHOW GRANTS FOR 'exemple'@'localhost';
+CREATE USER 'monuser'@'localhost' IDENTIFIED BY 'motdepasseFort';
+SHOW GRANTS FOR 'monuser'@'localhost';
 ```
 Mettre les droits :
 ```mysql
-GRANT PROCESS ON *.* TO 'exemple'@'localhost';
+GRANT ALL PRIVILEGES ON *.* TO 'monuser'@'localhost';
 FLUSH PRIVILEGES;
 ```
+
+`ON *.*` droit sur toutes les bases et toutes les tables.
 
 ## autocommit
 ### Scénario : Modification de plafond de carte bancaire en mode brouillon (autocommit désactivé, sans transaction explicite)
@@ -115,50 +114,7 @@ On utilise `autocommit = 0` dans sa session, sans `START TRANSACTION`.
     - Aucune trace du test de plafond à 5000 CHF n’a été laissée en base :
         - le conseiller a pu tester en prod,
         - puis tout annuler proprement sans impacter les autres utilisateurs.
-```sql
--- Given
-INSERT INTO users (name, balance)
-VALUES
-    ('Bob',   100.00),
-    ('Alice', 125.00);
 
--- Permet de calculer la somme des balances des users.
-SELECT SUM(balance) AS total_balance
-FROM users;
-
-SELECT @@autocommit;
-SET autocommit = 0;
-SELECT @@autocommit;
-    
---When
--- SESSION 1
-
-UPDATE users
-SET balance = balance - 50
-WHERE name = 'Alice';
-
-UPDATE users
-SET balance = balance + 50
-WHERE name = 'Bob';
-
-SELECT name, balance
-FROM users;
-
--- SESSION 2
-SELECT name, balance
-FROM users;
-
--- SESSION 1
-COMMIT;
-
-SELECT name, balance
-FROM users;
--- SESSION 2
-
-SELECT name, balance
-FROM users;
-
-```
 
 ## transaction
 ### Scénario : Transfert d’argent avec transaction explicite entre deux sessions
@@ -214,12 +170,6 @@ FROM users;
         - Le solde total de 225 CHF est toujours respecté.
 
 
-
-```mysql
-
-
-```
-
 ## IMPLICIT commit
 ### Scénario : Transfert avec autocommit désactivé et commit implicite dû à une commande DDL
 #### Given
@@ -229,11 +179,12 @@ FROM users;
 - Aucun transfert n’existe encore dans la table `transfers`.
 - Bernard existe dans `users` avec un solde de 100 CHF.
 - Alfred existe dans `users` avec un solde de 125 CHF.
-- La session 1 a l’autocommit désactivé (`SET autocommit = 0`).
+- La session 2 utilise l’autocommit activé (`SET autocommit = 1`).
 - La session 2 utilise l’autocommit activé (`SET autocommit = 1`).
 - La somme totale des soldes de Bernard et Alfred est de 225 CHF.
 
 #### When
+- Dans la session 1, je commence une `TRANSACTION`.
 - Dans la session 1, j’enregistre un nouveau transfert dans `transfers` :
     - `from_user_id` = Alfred,
     - `to_user_id` = Bernard,
@@ -295,117 +246,6 @@ FROM users;
         - La table `contracts` existe toujours dans la base `bank`.
         - Le solde total de 225 CHF est toujours respecté.
     - Le `ROLLBACK` n’a annulé ni le transfert ni la création de la table, car le `CREATE TABLE` a déjà validé ces modifications via un commit implicite.
-
-
-```sql
--- Given
-INSERT INTO users (name, balance)
-VALUES
-    ('Bernard',   100.00),
-    ('Alfred', 125.00);
-
-SELECT SUM(balance) AS total_balance
-FROM users;
-
-SELECT @@autocommit;
-SET autocommit = 0;
-SELECT @@autocommit;
-
-SELECT SUM(balance) AS total_balance
-FROM users;
-
---When
-
---Then
-```
-
-## save point
-### Scénario : Transfert avec savepoint et rollback partiel
-
-#### Given
-- Julien possède un compte avec un solde de 50 CHF.
-- David possède un compte avec un solde de 200 CHF.
-- Guillaume possède un compte avec un solde de 150 CHF.
-- La session utilise l’autocommit activé par défaut.
-- La somme totale des soldes est de 400 CHF.
-
-#### When
-- Je commence une `TRANSACTION`.
-- J’effectue un transfert de 50 CHF du compte de Guillaume vers le compte de Julien.
-- Je crée un savepoint nommé `backup_one`.
-- J’effectue un transfert de 25 CHF du compte de Guillaume vers le compte de David.
-- Je consulte les soldes de Julien, David et Guillaume.
-- J’exécute `ROLLBACK TO backup_one`.
-- Je consulte les soldes de Julien, David et Guillaume.
-- Je valide la transaction avec `COMMIT`.
-
-#### Then
-- Avant le `ROLLBACK TO backup_one` (après les deux transferts) :
-    - Julien a 100 CHF, David a 225 CHF et Guillaume a 75 CHF.
-    - Le solde total reste 400 CHF.
-
-- Après le `ROLLBACK TO backup_one` (seul le premier transfert est conservé) :
-    - Julien a 100 CHF, David a 200 CHF et Guillaume a 100 CHF.
-    - Le solde total reste 400 CHF.
-
-- Après le `COMMIT` :
-    - La transaction est validée avec l’état courant : Julien a 100 CHF, David a 200 CHF et Guillaume a 100 CHF.
-    - Le solde total de 400 CHF est toujours respecté.
-
-
-```sql
--- Given
-INSERT INTO users (name, balance)
-VALUES
-    ('Julien',   50.00),
-    ('David', 200.00),
-    ('Guillaume', 150.00);
-
-SELECT SUM(balance) AS total_balance
-FROM users;
-
-SELECT @@autocommit;
---When
-START TRANSACTION;
-
-UPDATE users
-SET balance = balance - 50
-WHERE name = 'Guillaume';
-
-UPDATE users
-SET balance = balance + 50
-WHERE name = 'Julien';
-
-SELECT name, balance
-FROM users;
-
-SAVEPOINT backup_one;
-
-UPDATE users
-SET balance = balance - 25
-WHERE name = 'Guillaume';
-
-UPDATE users
-SET balance = balance + 25
-WHERE name = 'David';
-
-SELECT name, balance
-FROM users;
-
-ROLLBACK TO backup_one;
-
-SELECT name, balance
-FROM users;
-
-COMMIT;
-
--- THEN
-SELECT name, balance
-FROM users;
-
-SELECT SUM(balance) AS total_balance
-FROM users;
-```
 
 
 ## Mes questions (notes personnelle) :
