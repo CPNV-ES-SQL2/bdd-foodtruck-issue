@@ -12,56 +12,85 @@ Il s'agit de prouver par la pratique ces points suivant:
 - Identifier la portée et le rôle d'une variable system 
 - Identifier les différents types de valeur qu'une variable user-defined peut contenir.
 - Debugger un script en pleine exécution afin de vérifier le contenu d'une variable
-## Scénario pratique WIP
+## Scénario pratique 
 
 #### Scénario 1 : Démontrer la portée et le rôle des variables user-defined 
 
-
-*idée : 2 scripts, l'un fini via un set d'une variable, le 2nd commence avec l'utilisation de celui-ci. doit se foirer si NULL ou rien. 2 sessions nécessaire*
-
-[Script setup](scenario1_setup.sql)
-
-- step to set up
-
-* __Given__ : J'initialise la db avec des données de test, je prépare 2 sessions différente :
-	* Session 1 : A *déjà* exécuté le [1er script](scenario1_1.sql) et a set une user-defined variable
-	* Session 2 : N'a pas exécuté le 1er script
+* __Given__ : J'initialise la db avec des données de test ainsi que la vérification de la variable par une procédure
 
 ```sql
--- Session 1 only :
-SET @total_point := (select sum(points) from resultstudent);
+DROP DATABASE IF EXISTS sql2Sce1;
+CREATE DATABASE sql2Sce1;
+USE sql2Sce1;
+DROP TABLE IF EXISTS resultstudent;
+CREATE TABLE resultstudent(
+	id int NOT NULL AUTO_INCREMENT,
+    test varchar(40),
+	firstname varchar(20), 
+	points int,
+    grade decimal (1,1),
+	PRIMARY KEY (id)
+);
+INSERT INTO resultstudent(firstname,points) VALUES 
+("Jean",10),
+("Mike",12),
+("Rudy",2),
+("Karl",5),
+("Molly",7);
+
+DELIMITER //
+CREATE PROCEDURE check_total_point()
+BEGIN
+    IF @total_point IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'The variable is empty';
+    END IF;
+
+    SELECT ROUND(@total_point / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS result;
+END //
+DELIMITER ;
 ```
 
-- Je vérifie que j'ai bien les 2 sessions actifs :
+Je prépare 2 sessions différentes :
+- Session 1 : Doit avoir exécuté le 1er script et set une user-defined variable @total_point.
+- Session 2 : Ne doit pas exécuter le 1er script et n'a pas de variable user-defined @total_point définie.
 
 ```sql
---do cmd show all actives sessions + result (MAKE SURE TO KILL BEFOREHAND)
-SHOW PROCESSLIST
-
---result
+-- Session 1 seulement :
+SET @total_point := (SELECT sum(points) FROM resultstudent);
 ```
 
-* __When__ : J'exécute le [2ème script](scenario1_2.sql) sur les 2 sessions
+- Je vérifie que j'ai bien les 2 sessions actifs via SHOW PROCESSLIST:
+
+| Id  | User | Host            | db       | Command | Time | State | Info             |
+|-----|------|------------------|----------|---------|------|-------|------------------|
+| 197 | sql2 | localhost:58561 | sql2sce1 | Sleep   | 56   |       | NULL             |
+| 198 | sql2 | localhost:65124 | sql2sce1 | Query   | 0    | init  | SHOW PROCESSLIST |
+* __When__ : J'exécute le 2ème script sur les 2 sessions.
 
 ```sql
-SELECT @total_point / (select count(DISTINCT firstname) from resultstudent) AS result
+SELECT @total_point / (SELECT COUNT(DISTINCT firstname) FROM resultstudent) AS result
 ```
 
-* __Then__ : Uniquement la session 2 devrait causer une erreur MySQL
+* __Then__ : 
+	* Session 1 : J'attends que cette session me renvoie le nombre de point moyenne par élève
+	* Session 2 : J'attends que cette session me renvoie une erreur indiquant que la variable user-defined est vide
 
 ```sql
--- Session 1
+-- Session 1 :
++--------+
 | result |
-| ------- |
-| 7.2     |
++--------+
+|    7.2 |
++--------+
 
--- Session 2
--- result of S2 -> error by another operation
+-- Session 2 :
+ERROR 1644 (45000): The variable is empty
 ```
 
 * [ma vidéo de démonstartion](Scénario1-USV)
 
-### Démontrer la portée et le rôle des variables système 
+### Démontrer la portée et le rôle des variables système  WIP
 
 
 *idée : 2 scripts, l'un défini une variable system, le 2nd utilise. 2 DIFFERENT résultat si on/off. 2 sessions nécessaire*
@@ -84,7 +113,7 @@ SELECT @total_point / (select count(DISTINCT firstname) from resultstudent) AS r
 
 
 * [ma vidéo de démonstartion](lien-vers-une-vidéo)
-### Démontrer les différents types de valeurs qu'une variable user-defined peut avoir
+### Démontrer les différents types de valeurs qu'une variable user-defined peut avoir WIP
 
 * (Given) Je veux exécuter ce script remplie de fill-in de valeur dans les variables afin de voir la conversion en cas de type non valide
 [Fichier des types de valeurs d'une variable](\appendices\types_variables.sql) *fix path*
@@ -126,7 +155,7 @@ Résultat des différent types qui ont était associé aux variables :
 | @varString | longtext       | YES  |
 | @varJSON   | longtext       | YES  |
 
-### Vérifier le contenu d'une variable durant l'exécution
+### Vérifier le contenu d'une variable durant l'exécution WIP
 
  (Given) J'ai à disposition un script qui modifie une variable en hexa et j'aimerai vérifier que la valeur est correctement défini dans la variable avant chaque action 
 
@@ -146,7 +175,7 @@ Résultat des différent types qui ont était associé aux variables :
 -- show result of EACH before-stepn°X
 ```
 
-## Théorie et Sources
+## Théorie et Sources WIP
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
 
 

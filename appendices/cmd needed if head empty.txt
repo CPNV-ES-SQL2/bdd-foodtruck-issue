@@ -1,0 +1,8 @@
+chemin cmd -> easier use of source
+"C:\Users\pr28mdn\Desktop\SQL2\bdd-foodtruck-issue\appendices"
+connection to MySQL, you should know the pwd
+mysql -u sql2 -p -h localhost 
+use correct db
+use sql2sce1;
+Execute script 
+source *.sql

@@ -1,1 +1,1 @@
-SELECT @total_point / (select count(DISTINCT firstname) from resultstudent ) 
+call check_total_point
