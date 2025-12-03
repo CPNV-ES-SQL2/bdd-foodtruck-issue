@@ -13,23 +13,25 @@ Ce sujet d'étude a pour objectif d'approfondir les liens et les dépendances en
     - rollback et SAVEPOINT : tester les savepoint et les différents rollback.
     - IMPLICIT commit : Les déclarations qui peu importent la config MySQL fait un commit.
 
-
-## Définition de dépendances
-
->Pour garantir l’atomicité des opérations sur la base de données, on peut utiliser les transactions et le mode autocommit, qui sont étroitement liés, car tous deux servent à assurer que les modifications sont appliquées de manière cohérente et indivisible.
---- 
+---
 
 ## Ouverture de session
 Une session est une connexion entre le client (terminal) et le serveur (mariadb).
-Ce qui défini l'unicité d'une connexion son les `Thread`.
-Un thread ne fait pas que “stocker la requête et le résultat”, il porte tout le contexte de session + transaction + 
-exécution : utilisateur, variables de session, transaction courante, locks, erreurs/état, etc.
 
-Les threads sont géré par un `Connection manager`, il gère :
-- Écouter les interfaces réseau
-- Accepter les nouvelles connexions
-- Quelle connexion sera lié avec quels threads.
-- La réutilisation / fin des threads.
+Chaque connexion cliente est servie par un thread côté serveur. L’ID de ce thread identifie la session et permet,
+par exemple, de la tuer avec KILL <Id>.
+
+Un thread ne fait pas que “stocker la requête et le résultat”, il porte tout le contexte de session + transaction + 
+exécution : 
+- utilisateur
+- variables de session
+- transaction courante
+- locks
+- erreurs/état, etc.
+
+Le serveur écoute les interfaces réseau, accepte les nouvelles connexions, 
+et leur associe un thread (ou un thread du cache de threads). Ce mécanisme global est parfois désigné 
+comme “connection/thread manager”.
 
 Nous n'avons pas de pouvoir de décision sur les threads utiliser, par contre, nous pouvons modifier des paramètres :
 - `SHOW PROCESSLIST;` permet de lister les threads utiliser.
@@ -59,6 +61,15 @@ FLUSH PRIVILEGES;
 ```
 
 `ON *.*` droit sur toutes les bases et toutes les tables.
+
+## Niveau d'isolation
+Les Transaction Isolation Levels son des niveaux d'isolation, qui servent à gérer comment plusieurs transactions
+peuvent lire et modifier les données en même temps.
+MySQL propose les niveaux standards : READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ (par défaut) et SERIALIZABLE.
+
+Nous travaillons avec le mode par defaut :
+`REPEATABLE READ` offre une forte cohérence en donnant à chaque transaction une vision stable des données (un snapshot).
+Pendant toute la transaction, les SELECT récupère toujours les mêmes données, même si d’autres transactions modifient la base en parallèle.
 
 ## autocommit
 ### Scénario : Modification de plafond de carte bancaire en mode brouillon (autocommit désactivé, sans transaction explicite)
@@ -114,8 +125,7 @@ On utilise `autocommit = 0` dans sa session, sans `START TRANSACTION`.
     - Aucune trace du test de plafond à 5000 CHF n’a été laissée en base :
         - le conseiller a pu tester en prod,
         - puis tout annuler proprement sans impacter les autres utilisateurs.
-
-
+        -
 ## transaction
 ### Scénario : Transfert d’argent avec transaction explicite entre deux sessions
 #### Given
@@ -171,7 +181,7 @@ On utilise `autocommit = 0` dans sa session, sans `START TRANSACTION`.
 
 
 ## IMPLICIT commit
-### Scénario : Transfert avec autocommit désactivé et commit implicite dû à une commande DDL
+### Scénario : Transfert avec transaction et commit implicite dû à une commande [DDL](https://dev.mysql.com/doc/refman/8.4/en/glossary.html#glos_ddl)
 #### Given
 - La base de données `bank` existe.
 - La table `users` existe avec les colonnes : `(id, name, balance)`.
@@ -179,7 +189,7 @@ On utilise `autocommit = 0` dans sa session, sans `START TRANSACTION`.
 - Aucun transfert n’existe encore dans la table `transfers`.
 - Bernard existe dans `users` avec un solde de 100 CHF.
 - Alfred existe dans `users` avec un solde de 125 CHF.
-- La session 2 utilise l’autocommit activé (`SET autocommit = 1`).
+- La session 1 utilise l’autocommit activé (`SET autocommit = 1`).
 - La session 2 utilise l’autocommit activé (`SET autocommit = 1`).
 - La somme totale des soldes de Bernard et Alfred est de 225 CHF.
 
@@ -247,14 +257,6 @@ On utilise `autocommit = 0` dans sa session, sans `START TRANSACTION`.
         - Le solde total de 225 CHF est toujours respecté.
     - Le `ROLLBACK` n’a annulé ni le transfert ni la création de la table, car le `CREATE TABLE` a déjà validé ces modifications via un commit implicite.
 
-
-## Mes questions (notes personnelle) :
-- Dans quels cas utiliser une transaction ou un autocommit = OFF ?
-- Découvrir les savepoint
-- rollback essayer de le valider en voyant les log ?
-- Est-ce que l'on peut voir les commandes pas encore commit ? (dans un fichier temporaire ?)
-- Définir ce qu'est la dépendance.
-
 ## Théorie et Sources
 * [Dev MySQL - autocommit, commit and rollback](https://dev.mysql.com/doc/refman/8.4/en/innodb-autocommit-commit-rollback.html)
 * [Dev MySQL - commit](https://dev.mysql.com/doc/refman/8.4/en/commit.html)
@@ -266,4 +268,7 @@ On utilise `autocommit = 0` dans sa session, sans `START TRANSACTION`.
 * [Dev MySQL - autocommit](https://dev.mysql.com/doc/refman/8.4/en/glossary.html#glos_autocommit)
 ### Thread et Session
 * [Dev MySQL - Thread](https://dev.mysql.com/doc/refman/8.4/en/connection-interfaces.html)
+* [Dev MySQL - Thread table](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-threads-table.html)
 
+### Isolation
+* [Dev MySQL - Isolation](https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html)
