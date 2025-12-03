@@ -88,7 +88,7 @@ SELECT @total_point / (SELECT COUNT(DISTINCT firstname) FROM resultstudent) AS r
 ERROR 1644 (45000): The variable is empty
 ```
 
-* [ma vidéo de démonstartion](Scénario1-USV)
+* [ma vidéo de démonstartion](https://www.youtube.com/watch?v=uuN_KMPYwGg)
 
 ### Démontrer la portée et le rôle des variables système  WIP
 
