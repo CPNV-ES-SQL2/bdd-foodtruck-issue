@@ -16,9 +16,10 @@ Il s'agit de prouver par la pratique ces points suivant:
 
 #### Scénario 1 : Démontrer la portée et le rôle des variables user-defined 
 
-* __Given__ : J'initialise la db avec des données de test ainsi que la vérification de la variable par une procédure
+* __Given__ : J'initialise la base de données avec des données de test ainsi que la vérification de la variable par une procédure.
 
 ```sql
+-- Script setup
 DROP DATABASE IF EXISTS sql2Sce1;
 CREATE DATABASE sql2Sce1;
 USE sql2Sce1;
@@ -51,29 +52,30 @@ END //
 DELIMITER ;
 ```
 
-Je prépare 2 sessions différentes :
-- Session 1 : Doit avoir exécuté le 1er script et set une user-defined variable @total_point.
-- Session 2 : Ne doit pas exécuter le 1er script et n'a pas de variable user-defined @total_point définie.
+Je prépare deux sessions différentes :
+- Session 1 : Doit avoir exécuté le premier script et définiune variable user-defined @total_point.
+- Session 2 : Ne doit pas exécuter le premier script et n’a pas de variable user-defined @total_point définie.
 
 ```sql
--- Session 1 seulement :
+-- Script 1, session 1 seulement :
 SET @total_point := (SELECT sum(points) FROM resultstudent);
 ```
 
-- Je vérifie que j'ai bien les 2 sessions actifs via SHOW PROCESSLIST:
+- Je vérifie que j'ai bien les deux sessions actives via SHOW PROCESSLIST:
 
 | Id  | User | Host            | db       | Command | Time | State | Info             |
 |-----|------|------------------|----------|---------|------|-------|------------------|
 | 197 | sql2 | localhost:58561 | sql2sce1 | Sleep   | 56   |       | NULL             |
 | 198 | sql2 | localhost:65124 | sql2sce1 | Query   | 0    | init  | SHOW PROCESSLIST |
-* __When__ : J'exécute le 2ème script sur les 2 sessions.
+* __When__ : J'exécute le second script sur les deux sessions.
 
 ```sql
+-- Script 2
 SELECT @total_point / (SELECT COUNT(DISTINCT firstname) FROM resultstudent) AS result
 ```
 
 * __Then__ : 
-	* Session 1 : J'attends que cette session me renvoie le nombre de point moyenne par élève
+	* Session 1 : J'attends que cette session me renvoie le nombre de points moyen par élève.
 	* Session 2 : J'attends que cette session me renvoie une erreur indiquant que la variable user-defined est vide
 
 ```sql
@@ -88,7 +90,7 @@ SELECT @total_point / (SELECT COUNT(DISTINCT firstname) FROM resultstudent) AS r
 ERROR 1644 (45000): The variable is empty
 ```
 
-* [ma vidéo de démonstartion](https://www.youtube.com/watch?v=uuN_KMPYwGg)
+* [ma vidéo de démonstration](https://www.youtube.com/watch?v=uuN_KMPYwGg)
 
 ### Démontrer la portée et le rôle des variables système  WIP
 
