@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS sql2Sce1;
-CREATE DATABASE sql2Sce1;
-USE sql2Sce1;
+DROP DATABASE IF EXISTS sql2Sce2;
+CREATE DATABASE sql2Sce2;
+USE sql2Sce2;
 DROP TABLE IF EXISTS resultstudent;
 CREATE TABLE resultstudent(
 	id int NOT NULL AUTO_INCREMENT,
@@ -10,7 +10,6 @@ CREATE TABLE resultstudent(
     grade decimal (5,1),
 	PRIMARY KEY (id)
 );
-SET @total_grade  := (select sum(grade) from resultstudent);
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
 ("Jean",10,5.5),
 ("Mike",12,6.0),
@@ -19,15 +18,7 @@ INSERT INTO resultstudent(firstname,points,grade) VALUES
 ("Molly",7,4.0);
 
 DELIMITER //
-CREATE PROCEDURE check_total_point()
-BEGIN
-    IF @total_point IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'The variable @total_point is empty';
-	ELSE
-        SELECT ROUND(@total_point / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_point;
-    END IF;
-END //
+
 CREATE PROCEDURE check_total_grade()
 BEGIN
 	IF @total_grade IS NULL THEN
@@ -38,6 +29,3 @@ BEGIN
     END IF; 
 END //
 DELIMITER ;
-
-
-

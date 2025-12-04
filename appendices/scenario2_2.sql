@@ -1,0 +1,1 @@
+call check_total_grade;
