@@ -1,5 +1,3 @@
-START TRANSACTION;
-
 CREATE TABLE Courses_Instructors (
   course_id INT NOT NULL,
   instructor_id INT NOT NULL,
@@ -16,5 +14,3 @@ ALTER TABLE Students_Courses
   DROP FOREIGN KEY Students_Courses_ibfk_3;
 ALTER TABLE Students_Courses
   DROP COLUMN instructor_id;
-
-COMMIT;
