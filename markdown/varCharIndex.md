@@ -158,7 +158,9 @@ Voici un rapport des différences de temps d'executions effectués en dehors d'u
 - Tests de delete
   - Les delete dans un index int ont duré en moyenne 15,01 ms
   - Les insert dans un index varchar ont duré en moyenne 12,26 ms
-  - Lors de la video les deletes ont duré 13,52 ms pour les int et 14,42 ms pour les varchar. Nous pouvons donc voir ici une grande variance dans les résultats...
+  - Lors de la video les deletes ont duré 13,52 ms pour les int et 14,42 ms pour les varchar. Nous pouvons donc voir ici une grande variance dans les résultats... 
+    - Il faudrait faire plus de tests pour obtenir des résultats plus fiables, par exemple plus de requêtes et sur un ordinateur physique dédié à ces tests, pour eviter que d'autres processus perturbent les mesures.
+    - Cependant, les nombreuses itérations de tests que j'ai pu faire me donnent l'impression que les différences de performances entre index int et varchar sont minimes dans ce contexte. Combien même les int sont très légèrement plus rapides je pense qu'il n'est pas nécessaire de se limiter à des index INT si les performances d'une application sont importantes.
 ## Théorie et Sources
 
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
