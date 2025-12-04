@@ -19,7 +19,7 @@ Ce sujet d'étude a pour objectif d'approfondir les liens et les dépendances en
 Une session est une connexion entre le client (terminal) et le serveur (mariadb).
 
 Chaque connexion cliente est servie par un thread côté serveur. L’ID de ce thread identifie la session et permet,
-par exemple, de la tuer avec KILL <Id>.
+par exemple, de la tuer avec `KILL <Id>`.
 
 Un thread ne fait pas que “stocker la requête et le résultat”, il porte tout le contexte de session + transaction + 
 exécution : 
@@ -34,9 +34,12 @@ et leur associe un thread (ou un thread du cache de threads). Ce mécanisme glob
 comme “connection/thread manager”.
 
 Nous n'avons pas de pouvoir de décision sur les threads utiliser, par contre, nous pouvons modifier des paramètres :
-- `SHOW PROCESSLIST;` permet de lister les threads utiliser.
+- `SHOW PROCESSLIST;` liste les sessions actives.
 - `max_connections` nombre maximal de connexions simultanées, “un thread par connexion” nombre maximum de threads de traitement.
 - `thread_cache_size` combien de threads inactifs MySQL garde en cache pour les réutiliser.
+
+> Voir `connection_handling.md` ainsi que les images contenu dans `appendices` pour comprendre le processus de 
+> connexion, de connexion active et de déconnexion.
 
 Pour s'y connecter :
 ```bash
@@ -51,12 +54,12 @@ SHOW PROCESSLIST;
 
 Verifier les droits :
 ```mysql
-CREATE USER 'monuser'@'localhost' IDENTIFIED BY 'motdepasseFort';
-SHOW GRANTS FOR 'monuser'@'localhost';
+CREATE USER 'jaque'@'localhost' IDENTIFIED BY '1234';
+SHOW GRANTS FOR 'jaque'@'localhost';
 ```
 Mettre les droits :
 ```mysql
-GRANT ALL PRIVILEGES ON *.* TO 'monuser'@'localhost';
+GRANT ALL PRIVILEGES ON *.* TO 'jaque'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
@@ -68,7 +71,7 @@ peuvent lire et modifier les données en même temps.
 MySQL propose les niveaux standards : READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ (par défaut) et SERIALIZABLE.
 
 Nous travaillons avec le mode par defaut :
-`REPEATABLE READ` offre une forte cohérence en donnant à chaque transaction une vision stable des données (un snapshot).
+`REPEATABLE READ` :
 Pendant toute la transaction, les SELECT récupère toujours les mêmes données, même si d’autres transactions modifient la base en parallèle.
 
 ## autocommit
@@ -77,7 +80,7 @@ Pendant toute la transaction, les SELECT récupère toujours les mêmes données
 Un conseiller veut tester une augmentation du plafond de carte bancaire d’un client en production, sans que cette
 modification soit visible pour les autres utilisateurs (Test en production).
 
-On utilise `autocommit = 0` dans sa session, sans `START TRANSACTION`.
+On utilise `autocommit = 0` dans la session, sans `START TRANSACTION`.
 
 #### Given
 
@@ -176,7 +179,7 @@ On utilise `autocommit = 0` dans sa session, sans `START TRANSACTION`.
 - Après le `COMMIT` :
     - En session 1 et en session 2 :
         - Dans `users`, Mark a 150 CHF et Brigitte a 75 CHF.
-        - Dans `transfers`, le transfert de 50 CHF de Brigitte vers Mark est visible par les deux sessions, avec `status = 'PENDING'` (ou éventuellement mis à jour à 'COMPLETED' dans la même transaction).
+        - Dans `transfers`, le transfert de 50 CHF de Brigitte vers Mark est visible par les deux sessions, avec `status = 'PENDING'`.
         - Le solde total de 225 CHF est toujours respecté.
 
 
@@ -266,7 +269,9 @@ On utilise `autocommit = 0` dans sa session, sans `START TRANSACTION`.
 
 ### Définition autocommit
 * [Dev MySQL - autocommit](https://dev.mysql.com/doc/refman/8.4/en/glossary.html#glos_autocommit)
+
 ### Thread et Session
+* [Dev MySQL - Connection handling](https://dev.mysql.com/blog-archive/mysql-connection-handling-and-scaling/)
 * [Dev MySQL - Thread](https://dev.mysql.com/doc/refman/8.4/en/connection-interfaces.html)
 * [Dev MySQL - Thread table](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-threads-table.html)
 
