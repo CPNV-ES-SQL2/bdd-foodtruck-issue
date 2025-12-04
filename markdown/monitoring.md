@@ -28,6 +28,8 @@ Ces scripts sql doivent etre executer pour le bon fonctionnement des scénarios:
 
 -   [fichier pour importer la configuration performance schema](../appendices/configurePerformanceSchema.sql)
 
+note: modifier le script `configurePerformanceSchema.sql` avec votre host et utilisateur pour les acteurs.
+
 [source](https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html)
 
 ### Mesurer le poids d'une requête (RAM)
@@ -35,11 +37,11 @@ Ces scripts sql doivent etre executer pour le bon fonctionnement des scénarios:
 Source:
 https://planetscale.com/blog/profiling-memory-usage-in-mysql
 
--   (Given) créer une nouvelle session
+-   (Given) créer une nouvelle session en récupérant le thread id de la session
 
 Dans un nouveau terminal :
 
-```sql
+```bash
 mysql -u username -p
 ```
 
@@ -63,6 +65,20 @@ WHERE thread_id = @tid
 ORDER BY current_number_of_bytes_used DESC
 ```
 
+Effectuer la requête à analyser :
+
+```sql
+USE demo_db;
+SELECT
+    products.category_id,
+    SUM(order_items.quantity * order_items.unit_price) AS revenue
+FROM order_items
+JOIN products ON products.id = order_items.product_id
+JOIN orders ON orders.id = order_items.order_id
+GROUP BY products.category_id
+ORDER BY revenue DESC;
+```
+
 -   (Then) Rassembler la mémoire utilisé pendant l'exécution de la requête
 
 ### Use case : Mesurer le temps d'exécution d'une requête (ms)
@@ -70,152 +86,100 @@ ORDER BY current_number_of_bytes_used DESC
 Source:
 https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
 
--   (Given) Mettre en place la configuration de base et la DBB test avec une query dans l'historique
+-   (Given) Mettre en place la configuration de base avec une query dans l'historique
 
 ```sql
 USE demo_db;
+
+/* most profitable category */
 SELECT
-    users.first_name,
-    users.last_name,
-    products.name AS product_name,
-    products.price,
-    orders.quantity,
-    (products.price * orders.quantity) AS total_price,
-    SHA2(CONCAT(users.email, products.name, orders.quantity), 256) AS hash
-FROM users
-JOIN orders
-    ON users.id = orders.user_id
-JOIN products
-    ON products.id = orders.product_id
-CROSS JOIN (
-    SELECT 1 AS x
-    FROM orders
-    LIMIT 10000
-) AS workload_multiplier
+    products.category_id,
+    SUM(order_items.quantity * order_items.unit_price) AS revenue
+FROM order_items
+JOIN products ON products.id = order_items.product_id
+JOIN orders ON orders.id = order_items.order_id
+GROUP BY products.category_id
+ORDER BY revenue DESC;
 ```
 
 -   (When) Rechercher la requête pour le temps en milliseconde
 
 ```sql
-SELECT EVENT_ID, TRUNCATE(TIMER_WAIT/1000000000,6) as Duration_MS, SQL_TEXT
-FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%workload_multiplier%';
+SELECT EVENT_ID, TRUNCATE(TIMER_WAIT/1e9,6) as Duration_MS, SQL_TEXT
+FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%most profitable category%'\G
 ```
 
 -   (Then) Constater le temps d'exécution
 
-Le temps en milisecondes devrait être affiché des requêtes contenant "example"
+Le temps en milisecondes devrait être affiché des requêtes contenant "most profitable category"
 
 ### Comparer des requêtes sur leur temps d'exécution
 
 Source:
 https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
 
--   (Given) Exécuter les deux requêtes à comparer
+-   (Given) Mettre en place la configuration de base et exécuter les deux requêtes à comparer
+
+Effacer les données dans la table d'historique :
 
 ```sql
-USE demo_db;
-SELECT
-    users.first_name,
-    users.last_name,
-    products.name AS product_name,
-    products.price,
-    orders.quantity,
-    (products.price * orders.quantity) AS total_price,
-    SHA2(CONCAT(users.email, products.name, orders.quantity), 256) AS hash
-FROM users
-JOIN orders
-    ON users.id = orders.user_id
-JOIN products
-    ON products.id = orders.product_id
-CROSS JOIN (
-    SELECT 1 AS x
-    FROM orders
-    LIMIT 10000
-) AS workload1_multiplier
+TRUNCATE TABLE performance_schema.events_statements_history_long;
 ```
 
 ```sql
+USE demo_db;
+
+/* First query */
 SELECT
-    users.first_name,
-    users.last_name,
-    products.name AS product_name,
-    products.price,
-    orders.quantity,
-    (products.price * orders.quantity) AS total_price,
-    SHA2(SHA2(CONCAT(users.email, products.name, orders.quantity), 256), 256) AS double_hash
-FROM users
-JOIN orders
-    ON users.id = orders.user_id
-JOIN products
-    ON products.id = orders.product_id
-CROSS JOIN (
-    SELECT 1 AS x
-    FROM orders
-    LIMIT 10000
-) AS workload2_multiplier
-WHERE users.email LIKE '%example%';
+    products.category_id,
+    SUM(order_items.quantity * order_items.unit_price) AS revenue
+FROM order_items
+JOIN products ON products.id = order_items.product_id
+JOIN orders ON orders.id = order_items.order_id
+GROUP BY products.category_id
+ORDER BY revenue DESC;
 ```
 
 -   (When) Récupérer l'event id des deux requêtes et récupérer le temps d'éxecution par étapes
 
+Analyser ou la latence a optimiser se trouve dans la requête :
+
 ```sql
-SELECT EVENT_ID
-FROM performance_schema.events_statements_history_long WHERE SQL_TEXT LIKE '%workload1_multiplier%';
+SELECT EVENT_ID, SQL_TEXT
+FROM performance_schema.events_statements_history_long WHERE SQL_TEXT LIKE '%First query%'\G
 ```
 
 ```sql
-SELECT EVENT_ID
-FROM performance_schema.events_statements_history_long WHERE SQL_TEXT LIKE '%workload2_multiplier%';
+SELECT event_name AS Stage, TRUNCATE(TIMER_WAIT/1e9,6) AS Duration_MS
+FROM performance_schema.events_stages_history_long WHERE NESTING_EVENT_ID=<unoptimized id>;
 ```
 
-```sql
-SET @event_q1 = <event_id_from_first_query>;
-SET @event_q2 = <event_id_from_second_query>;
-```
+Tenter une optimisation de la requête :
 
 ```sql
-WITH
-statement AS (
-  SELECT EVENT_ID, SQL_TEXT, TRUNCATE(TIMER_WAIT/1e9, 3) AS total_ms
-  FROM performance_schema.events_statements_history_long
-  WHERE EVENT_ID IN (@event_q1, @event_q2)
-),
-stages AS (
-  SELECT NESTING_EVENT_ID AS event_id,
-         EVENT_NAME AS stage,
-         TRUNCATE(TIMER_WAIT/1e9, 3) AS ms
-  FROM performance_schema.events_stages_history_long
-  WHERE NESTING_EVENT_ID IN (@event_q1, @event_q2)
-),
-all_stages AS (
-  SELECT DISTINCT stage FROM stages
-)
+USE demo_db;
 
+/* Second query */
 SELECT
-  a.stage,
-  COALESCE(s1.ms, 0) AS q1_ms,
-  COALESCE(s2.ms, 0) AS q2_ms,
-  (COALESCE(s2.ms, 0) - COALESCE(s1.ms, 0)) AS diff_ms
-FROM all_stages a
-LEFT JOIN (SELECT stage, ms FROM stages WHERE event_id = @event_q1) s1 USING (stage)
-LEFT JOIN (SELECT stage, ms FROM stages WHERE event_id = @event_q2) s2 USING (stage)
-
-UNION ALL
-
-SELECT
-  'TOTAL' AS stage,
-  (SELECT total_ms FROM statement WHERE EVENT_ID = @event_q1) AS q1_ms,
-  (SELECT total_ms FROM statement WHERE EVENT_ID = @event_q2) AS q2_ms,
-  (SELECT total_ms FROM statement WHERE EVENT_ID = @event_q2)
-    - (SELECT total_ms FROM statement WHERE EVENT_ID = @event_q1)
-  AS diff_ms
-
-ORDER BY
-  CASE WHEN stage = 'TOTAL' THEN 2 ELSE 1 END,
-  stage;
+    products.category_id,
+    SUM(order_items.quantity * order_items.unit_price) AS revenue
+FROM order_items
+JOIN products ON products.id = order_items.product_id
+GROUP BY products.category_id
+ORDER BY revenue DESC;
 ```
 
 -   (Then) Comparer les résultats du temps d'exécution par étapes
+
+```sql
+SELECT EVENT_ID, SQL_TEXT
+FROM performance_schema.events_statements_history_long WHERE SQL_TEXT LIKE '%Second query%'\G
+```
+
+```sql
+SELECT event_name AS Stage, TRUNCATE(TIMER_WAIT/1e9,6) AS Duration_MS
+FROM performance_schema.events_stages_history_long WHERE NESTING_EVENT_ID=<optimized id>;
+```
 
 ### Diagnostiquer des requêtes pour les optimiser
 

@@ -4,7 +4,7 @@ WHERE HOST = '%' AND USER = '%';
 
 INSERT INTO performance_schema.setup_actors
 (HOST,USER,ROLE,ENABLED,HISTORY)
-VALUES('your host','your user','%','YES','YES'); Modifier les valeurs host et user pour correspondre a votre configuration puis supprimer ce texte. 
+VALUES('localhost','root','%','YES','YES');
 
 UPDATE performance_schema.setup_instruments
 SET ENABLED = 'YES', TIMED = 'YES'
