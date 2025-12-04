@@ -50,11 +50,11 @@ VALUES (2, 1, 50.00, 'PENDING');
 -- 2) Mettre à jour les soldes dans users
 UPDATE users
 SET balance = balance - 50.00
-WHERE id = 2;   -- Alfred
+WHERE name = 'Alfred';   -- Alfred
 
 UPDATE users
 SET balance = balance + 50.00
-WHERE id = 1;   -- Bernard
+WHERE name = 'Bernard';   -- Bernard
 
 -- 3) Consulter les soldes (SESSION 1, avant CREATE TABLE)
 SELECT id, name, balance

@@ -69,6 +69,10 @@ ORDER BY id;
 --   Brigitte :  75.00
 --   Somme    : 225.00
 
+SELECT SUM(balance) AS total_balance
+FROM users
+WHERE name IN ('Mark', 'Brigitte');
+
 SELECT *
 FROM transfers
 WHERE from_user_id = 2 AND to_user_id = 1;
@@ -133,4 +137,6 @@ WHERE from_user_id = 2 AND to_user_id = 1;
 --      amount       = 50.00
 --      status       = 'PENDING' (ou 'COMPLETED' si tu le mets à jour dans la même transaction)
 
-
+SELECT SUM(balance) AS total_balance
+FROM users
+WHERE name IN ('Mark', 'Brigitte');
