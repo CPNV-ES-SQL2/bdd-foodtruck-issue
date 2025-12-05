@@ -4,6 +4,8 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pymysql
+pymysql.install_as_MySQLdb()
 import MySQLdb
 import argparse
 
@@ -110,7 +112,7 @@ def get_thread_for_connection_id(database_connection, cid):
 
 def main():
     args = get_command_line_args()
-    database_connection = MySQLdb.connect(host='127.0.0.1', user='root', password='password')
+    database_connection = MySQLdb.connect(host='127.0.0.1', user='root', password='1234')
     connection_id = get_thread_for_connection_id(database_connection, args.connection_id)
     m = MemoryProfiler()
     m.start_visualization(database_connection, connection_id, args.frequency)

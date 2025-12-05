@@ -28,6 +28,12 @@ Ces scripts sql doivent etre executer pour le bon fonctionnement des scénarios:
 
 -   [fichier pour importer la configuration performance schema](../appendices/configurePerformanceSchema.sql)
 
+Avant chaque nouveau scénario, nettoyer l'historique :
+
+```sql
+TRUNCATE TABLE performance_schema.events_statements_history_long;
+```
+
 note: modifier le script `configurePerformanceSchema.sql` avec votre host et utilisateur pour les acteurs.
 
 [source](https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html)
@@ -52,17 +58,23 @@ SET @tid = (SELECT thread_id
     WHERE PROCESSLIST_ID=@cid);
 ```
 
+Noter le connection_id
+
 -   (When) évaluer la mémoire initial avant la requête et effectuer la requête
 
 La requête suivante est utilisé pour connaitre la consommation mémoire par les différents event MySQL. Ceci devrait être utilisé constament durant l'execution d'une requête (par un script par exemple) pour pouvoir monitorer la consommation mémoire.
 
 ```sql
-SELECT
-    event_name,
-    current_number_of_bytes_used
+SELECT event_name, current_number_of_bytes_used
 FROM performance_schema.memory_summary_by_thread_by_event_name
 WHERE thread_id = @tid
-ORDER BY current_number_of_bytes_used DESC
+ORDER BY event_name DESC
+```
+
+Lancer le [script python](appendices\sqlMonitor.py) :
+
+```bash
+py ./appendices/sqlMonitor.py --connection-id <connection-id> --frequency 250
 ```
 
 Effectuer la requête à analyser :
@@ -86,7 +98,7 @@ ORDER BY revenue DESC;
 Source:
 https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
 
--   (Given) Mettre en place la configuration de base avec une query dans l'historique
+-   (Given) Executer la requête à mesurer
 
 ```sql
 USE demo_db;
@@ -118,13 +130,9 @@ Le temps en milisecondes devrait être affiché des requêtes contenant "most pr
 Source:
 https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
 
--   (Given) Mettre en place la configuration de base et exécuter les deux requêtes à comparer
+-   (Given) Exécuter les deux requêtes à comparer
 
 Effacer les données dans la table d'historique :
-
-```sql
-TRUNCATE TABLE performance_schema.events_statements_history_long;
-```
 
 ```sql
 USE demo_db;
