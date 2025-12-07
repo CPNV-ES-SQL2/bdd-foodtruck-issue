@@ -4,13 +4,13 @@
 
 ## Introduction
 
-Ce sujet d'étude avait pour objectif d'approfondir si l'utilisation d'index sur des colonnes de type VARCHAR ont un impact significatif sur les performances dans une base de données MySQL. Mais suite a des résultats non concluents, le nouveau but de ce sujet et d'étudier l'impact que peut avoir le bon usage des index MySQL sur des requêtes.
+Ce sujet d'étude avait pour objectif d'approfondir si l'utilisation d'index sur des colonnes de type VARCHAR ont un impact significatif sur les performances dans une base de données MySQL. Mais suite à des résultats non concluents, le nouveau but de ce sujet est d'étudier l'impact que peut avoir le bon usage des index MySQL sur des requêtes.
 
 ## Objectifs
 
 Il s'agit de prouver par la pratique les points suivants:
 
-* Comparer le poids de requêtes identiques, mais avec des indexs différents. Tout ceci en surveillant les métriques suivantes :
+* Comparer le poids de requêtes identiques, mais avec des index différents. Tout ceci en surveillant les métriques suivantes :
   * Mesurer les performances en termes de temps d'exécution.
   * Analyser la consommation de mémoire du thread MySQL en temps réel.
   * Mesurer l'espace disque utilisé par les index.
@@ -24,12 +24,12 @@ Une base de données de test est initialisée avec les scripts suivants :
 
 [file to import testdb](../appendices/schema.sql)
 ```bash
-mysql -u USERNAME -p'PASSWORD' -h MYSQL_IP -P MYSQL_PORT < schema.sql
+mysql -u USERNAME -p'PASSWORD' -h MYSQL_IP -P MYSQL_PORT < appendices/schema.sql
 ```
 now that you have an empty table, you can use [this seeder](../appendices/populate_data.py) to populate it with test data. (Change the config at line 13 of the script to connect to your db)
 
 ```bash
-python3 populate_data.py
+python3 appendices/populate_data.py
 ```
 
 ##### Pour activer le performance schema
@@ -95,7 +95,7 @@ Je relance les requêtes de sélection :
 
 * Requêtes 1 à 4 (identiques au scénario précédent).
 * Je compare les nouveaux temps d’exécution.
-* Je observe les nouveaux plans d’exécution.
+* J' observe les nouveaux plans d’exécution.
 
 ### Then
 
@@ -130,7 +130,7 @@ J’exécute :
 ### Then
 
 * Les requêtes utilisant `first_name` et `last_name` deviennent plus simples.
-* Le plan utilise n'utilise plus un full scan, et doit filter parmis moins de rows.
+* Le plan utilise plus de full scan, et doit filter parmis moins de lignes.
 
 ## Scénario 4 — Analyse de l'espace disque
 ### Given
@@ -145,11 +145,11 @@ WHERE stat_name = 'size' AND table_name LIKE "%personas%"
 ORDER BY size_in_kb DESC;
 ```
 ### Then
-* L’espace disque utilisé par chaque index est affiché, et les index qui contienne plus de colonnes complexes sont plus lourds que les index simples.
+* L’espace disque utilisé par chaque index est affiché, et les index qui contiennent plus de colonnes complexes sont plus lourds que les index simples.
 
 ### Vidéo de démonstration
 
-Anciens test:
+Anciens tests:
  - [Mise en place de la database](https://youtu.be/cSMaOUgi2As)
  - [Tests de performance](https://youtu.be/7YIYA1VJKf0)
 Nouveaux tests:
