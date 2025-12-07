@@ -4,25 +4,34 @@
 
 ## Introduction
 
-Ce sujet d'étude a pour objectif d'approfondir si l'utilisation d'index sur des colonnes de type VARCHAR ont un impact significatif sur les performances dans une base de données MySQL.
+Ce sujet d'étude avait pour objectif d'approfondir si l'utilisation d'index sur des colonnes de type VARCHAR ont un impact significatif sur les performances dans une base de données MySQL. Mais suite a des résultats non concluents, le nouveau but de ce sujet et d'étudier l'impact que peut avoir le bon usage des index MySQL sur des requêtes.
 
 ## Objectifs
 
 Il s'agit de prouver par la pratique les points suivants:
 
-* Comparer le poids de requêtes similaires, mais avec 2 tables différentes (une avec un index INT et l'autre un index VARCHAR)
+* Comparer le poids de requêtes identiques, mais avec des indexs différents. Tout ceci en surveillant les métriques suivantes :
   * Mesurer les performances en termes de temps d'exécution.
-  * Mesurer la consommation de mémoire.
+  * Analyser la consommation de mémoire du thread MySQL en temps réel.
   * Mesurer l'espace disque utilisé par les index.
-* Ne pas se contenter de tester des requêtes de lecture, mais aussi des requêtes d'insertion et de suppression.
-* Analyser les résultats pour déterminer si l'indexation sur des colonnes VARCHAR est aussi efficace que sur des colonnes INT.
 
 ## Scénario
 
-### Select where with indexed INT vs indexed VARCHAR
-#### (Given) Importer ce script d'initalisation de la base de données de tests
+### Scénario 1 - Comparaison de requêtes sans index optimisés
+#### Given
+Une base de données de test est initialisée avec les scripts suivants :
 
-[file to import testdb](../appendices/mysqlscript.sql)
+
+[file to import testdb](../appendices/schema.sql)
+```bash
+mysql -u USERNAME -p'PASSWORD' -h MYSQL_IP -P MYSQL_PORT < schema.sql
+```
+now that you have an empty table, you can use [this seeder](../appendices/populate_data.py) to populate it with test data. (Change the config at line 13 of the script to connect to your db)
+
+```bash
+python3 populate_data.py
+```
+
 ##### Pour activer le performance schema
 
 Activer le performance schema dans le fichier de configuration my.cnf ou my.ini
@@ -33,136 +42,121 @@ performance_schema=ON
 performance-schema-instrument='memory/%=COUNTED'
 ```   
 
-#### (When) Je compare les performances de cette requête sur les 2 tables
+#### When
+J’exécute et mesure les performances (temps, mémoire, I/O) des requêtes suivantes :
+1. Recherche par prénom :
+
+   ```sql
+   SELECT COUNT(*) FROM personas WHERE first_name = 'Pierre';
+   ```
+2. Recherche par nom :
+
+   ```sql
+   SELECT COUNT(*) FROM personas WHERE last_name = 'Müller';
+   ```
+3. Recherche combinée prénom + nom :
+
+   ```sql
+   SELECT COUNT(*) FROM personas WHERE first_name = 'Pierre' AND last_name = 'Müller';
+   ```
+4. Recherche combinée prénom + nom + ville :
+
+   ```sql
+   SELECT COUNT(*) FROM personas WHERE first_name = 'Pierre' AND last_name = 'Müller' AND city = 'Genève';
+   ```
+
+Et j'observe le plan d’exécution pour la requête 3 :
 
 ```sql
-SET PROFILING = 1;
-SELECT * FROM users_int WHERE id = 54310;
-SELECT * FROM users_int WHERE id = 54311;
-SELECT * FROM users_int WHERE id = 54312;
-SELECT * FROM users_int WHERE id = 54313;
-SELECT * FROM users_int WHERE id = 54314;
-SELECT * FROM users_int WHERE id = 54315;
-SELECT * FROM users_int WHERE id = 54316;
-SELECT * FROM users_int WHERE id = 54317;
-SELECT * FROM users_int WHERE id = 54318;
-SELECT * FROM users_varchar WHERE id = '54310';
-SELECT * FROM users_varchar WHERE id = '54311';
-SELECT * FROM users_varchar WHERE id = '54312';
-SELECT * FROM users_varchar WHERE id = '54313';
-SELECT * FROM users_varchar WHERE id = '54314';
-SELECT * FROM users_varchar WHERE id = '54315';
-SELECT * FROM users_varchar WHERE id = '54316';
-SELECT * FROM users_varchar WHERE id = '54317';
-SELECT * FROM users_varchar WHERE id = '54318';
+EXPLAIN SELECT COUNT(*) FROM personas WHERE first_name = 'Pierre' AND last_name = 'Müller';
+```
 
-SHOW PROFILES;
+### Then
 
+* Les requêtes provoquent un "full table scan".
+* Le temps d’exécution est élevé.
+* La consommation mémoire et l'I/O sont significatives.
+
+
+## Scénario 2 — Ajout d’un index simple et comparaison des performances
+
+### Given
+
+* Les conditions du scénario 1.
+* Un index simple ajouté sur `first_name` :
+
+  ```sql
+  CREATE INDEX idx_first_name ON personas(first_name);
+  ```
+
+### When
+
+Je relance les requêtes de sélection :
+
+* Requêtes 1 à 4 (identiques au scénario précédent).
+* Je compare les nouveaux temps d’exécution.
+* Je observe les nouveaux plans d’exécution.
+
+### Then
+
+* Les recherches filtrant par `first_name` deviennent nettement plus rapides.
+* Une partie des full scans disparaît.
+* Certaines requêtes filtrant par plusieurs colonnes restent sous-optimisées.
+* Un usage de ram réduit devrait être observé
+
+## Scénario 3 — Utilisation d’un index composite `first_name + last_name`
+
+### Given
+
+* Un index composite est créé :
+
+  ```sql
+  CREATE INDEX idx_name ON personas(first_name, last_name);
+  ```
+
+### When
+
+J’exécute :
+
+* Requête 3 et 4 (prénom + nom, puis prénom + nom + ville).
+* Analyse du plan d’exécution :
+
+  ```sql
+  EXPLAIN SELECT COUNT(*) 
+  FROM personas 
+  WHERE first_name = 'Pierre' AND last_name = 'Müller';
+  ```
+
+### Then
+
+* Les requêtes utilisant `first_name` et `last_name` deviennent plus simples.
+* Le plan utilise n'utilise plus un full scan, et doit filter parmis moins de rows.
+
+## Scénario 4 — Analyse de l'espace disque
+### Given
+* Les index créés dans les scénarios précédents.
+### When
+* J’utilise la commande suivante pour mesurer l’espace disque utilisé par les index :
+```sql
 SELECT database_name, table_name, index_name,
 ROUND(stat_value * @@innodb_page_size / 1024, 2) size_in_kb
 FROM mysql.innodb_index_stats
-WHERE stat_name = 'size' AND table_name LIKE "%users%"
+WHERE stat_name = 'size' AND table_name LIKE "%personas%"
 ORDER BY size_in_kb DESC;
 ```
-
-#### (Then) Le temps d'exécution de la requête en varchar devrait prendre plus de temps.
-Puisque l'inex INT est plus petit en taille, il est plus rapide à parcourir car moins d'IO à effectuer.
-
-### Insert into indexed INT vs indexed VARCHAR
-#### (Given) la base de données de tests est initialisée par le test précédent.
-#### (When) Je compare les performances de cette requête sur les 2 tables
-```sql
-SET PROFILING = 1;
-
-INSERT INTO users_int (id, data) VALUES (420000001, 'Test User');
-INSERT INTO users_int (id, data) VALUES (420000002, 'Test User');
-INSERT INTO users_int (id, data) VALUES (420000003, 'Test User');
-INSERT INTO users_int (id, data) VALUES (420000004, 'Test User');
-INSERT INTO users_int (id, data) VALUES (420000005, 'Test User');
-INSERT INTO users_int (id, data) VALUES (420000006, 'Test User');
-INSERT INTO users_int (id, data) VALUES (420000007, 'Test User');
-INSERT INTO users_int (id, data) VALUES (420000008, 'Test User');
-INSERT INTO users_int (id, data) VALUES (420000009, 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('420000001', 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('420000002', 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('420000003', 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('420000004', 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('420000005', 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('420000006', 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('420000007', 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('420000008', 'Test User');
-INSERT INTO users_varchar (id, data) VALUES ('420000009', 'Test User');
-
-SHOW PROFILES;
-```
-#### (Then) Le temps d'exécution de la requête en varchar devrait prendre plus de temps.
-Puisque l'inex VARCHAR est plus grand en taille, il est plus lent à mettre à jour car plus d'IO à effectuer et potentiellement plus de fragmentation.
-
-
-### Delete from indexed INT vs indexed VARCHAR
-
-#### (Given) la base de données de tests est initialisée par le test précédent.
-
-#### (When) Je compare les performances de cette requête sur les 2 tables
-
-```sql
-SET PROFILING = 1;
-DELETE FROM users_int WHERE id = 420000001;
-DELETE FROM users_int WHERE id = 420000002;
-DELETE FROM users_int WHERE id = 420000003;
-DELETE FROM users_int WHERE id = 420000004;
-DELETE FROM users_int WHERE id = 420000005;
-DELETE FROM users_int WHERE id = 420000006;
-DELETE FROM users_int WHERE id = 420000007;
-DELETE FROM users_int WHERE id = 420000008;
-DELETE FROM users_int WHERE id = 420000009;
-DELETE FROM users_varchar WHERE id = '420000001';
-DELETE FROM users_varchar WHERE id = '420000002';
-DELETE FROM users_varchar WHERE id = '420000003';
-DELETE FROM users_varchar WHERE id = '420000004';
-DELETE FROM users_varchar WHERE id = '420000005';
-DELETE FROM users_varchar WHERE id = '420000006';
-DELETE FROM users_varchar WHERE id = '420000007';
-DELETE FROM users_varchar WHERE id = '420000008';
-DELETE FROM users_varchar WHERE id = '420000009';
-SHOW PROFILES;
-```
-#### (Then) Le temps d'exécution de la requête en varchar devrait prendre plus de temps.
-Puisque l'inex VARCHAR est plus grand en taille, il est plus lent à mettre à jour car plus d'IO à effectuer et potentiellement plus de fragmentation.
-
-### Utilisation de la ram
-Je n'ai pas réussi à mesurer de manière fiable la consommation de RAM entre les deux types d'index. Les variations sont trop importantes et les outils disponibles ne permettent pas une mesure précise dans ce contexte, mais l'allocation de RAM globale du serveur.
-#### Outils etudies pour mesurer la RAM
-| Outil                                                        | Retenu   | Justification                                                         |
-| ------------------------------------------------------------ | -------- | --------------------------------------------------------------------- |
-| performance_schema                                           | Non      | Effectue de mesures de l'usage de memoir non spécifique à une requête |
-| https://docs.percona.com/percona-monitoring-and-management/2 | Non      | Outil de monitoring global, pas de mesure par requête                 |
-| https://profilesql.com/use/                                  | A tester | Outil tiers prometteur pour des analyses plus fines                   |
-| EXPLAIN ANALYZE                                              | Non      | Ne fournit pas d'information sur la RAM utilisée                      |
+### Then
+* L’espace disque utilisé par chaque index est affiché, et les index qui contienne plus de colonnes complexes sont plus lourds que les index simples.
 
 ### Vidéo de démonstration
 
-[Mise en place de la database](https://youtu.be/cSMaOUgi2As)
-[Tests de performance](https://youtu.be/7YIYA1VJKf0)
-
-### Résultats hors vidéo
-Les tests peuvent être impactés par les processus concurrents de la machine. Notamment lors de l'enregistrement d'écran.
-
-Voici un rapport des différences de temps d'executions effectués en dehors d'un enregistrement d'écran.
-- Tests de select
-  - Les select dans un index int ont duré en moyenne 0,12 ms
-  - Les select dans un index varchar ont duré en moyenne 0,14 ms
-- Tests d'insert
-  - Les insert dans un index int ont duré en moyenne 0,164 ms
-  - Les insert dans un index varchar ont duré en moyenne 0,166 ms
-- Tests de delete
-  - Les delete dans un index int ont duré en moyenne 15,01 ms
-  - Les insert dans un index varchar ont duré en moyenne 12,26 ms
-  - Lors de la video les deletes ont duré 13,52 ms pour les int et 14,42 ms pour les varchar. Nous pouvons donc voir ici une grande variance dans les résultats... 
-    - Il faudrait faire plus de tests pour obtenir des résultats plus fiables, par exemple plus de requêtes et sur un ordinateur physique dédié à ces tests, pour eviter que d'autres processus perturbent les mesures.
-    - Cependant, les nombreuses itérations de tests que j'ai pu faire me donnent l'impression que les différences de performances entre index int et varchar sont minimes dans ce contexte. Combien même les int sont très légèrement plus rapides je pense qu'il n'est pas nécessaire de se limiter à des index INT si les performances d'une application sont importantes.
+Anciens test:
+ - [Mise en place de la database](https://youtu.be/cSMaOUgi2As)
+ - [Tests de performance](https://youtu.be/7YIYA1VJKf0)
+Nouveaux tests:
+ - TODO, après avoir validé les nouveaux tests
 ## Théorie et Sources
 
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
 
 Source MySQL !!!!
+
