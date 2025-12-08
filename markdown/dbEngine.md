@@ -10,10 +10,10 @@ Ce sujet d'étude a pour objectif d'approfondir les différents moteurs de stock
 
 Il s'agit de prouver par la pratique les points suivants:
 
-* [ ] Filtrer et répliquer des données entre 2 serveurs MySQL grâce à l'**engine** ``BLACKHOLE``
-![Blackhole Schema](../appendices/blackhole/schema.png)
 * [ ] Accéder à des données d'une autre instance de MySQL sans réplication/cluster grâce à l'**engine** ``FEDERATED``
 ![Federated Schema](../appendices/federated/schema.png)
+* [ ] Filtrer et répliquer des données entre 2 serveurs MySQL grâce à l'**engine** ``BLACKHOLE``
+![Blackhole Schema](../appendices/blackhole/schema.png)
 * [ ] Perte de données possible avec l'**engine** ``MyISAM`` et comparaison avec ``InnoDB``
 
 ## Scénarios
