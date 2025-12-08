@@ -1,7 +1,7 @@
 services:
-  mysql-remote:
+  magasin-1:
     image: mysql:lts
-    container_name: mysql-remote
+    container_name: magasin-1
     ports:
       - 3306:3306
     environment:
@@ -9,11 +9,12 @@ services:
       MYSQL_PASSWORD: BigPassword
       MYSQL_ROOT_PASSWORD: BigPassword
     volumes:
-      - mysql-remote-data:/var/lib/mysql
+      - ./config:/etc/mysql/conf.d
+      - magasin-1:/var/lib/mysql
 
-  mysql-local:
+  magasin-2:
     image: mysql:lts
-    container_name: mysql-local
+    container_name: magasin-2
     ports:
       - 3307:3306
     environment:
@@ -22,8 +23,9 @@ services:
       MYSQL_ROOT_PASSWORD: BigPassword
     volumes:
       - ./config:/etc/mysql/conf.d
-      - mysql-local-data:/var/lib/mysql
+      - magasin-2:/var/lib/mysql
 
 volumes:
-  mysql-remote-data:
-  mysql-local-data:
+  datawarehouse:
+  magasin-1:
+  magasin-2:
