@@ -10,13 +10,11 @@ CREATE TABLE resultstudent(
     grade decimal (5,1),
 	PRIMARY KEY (id)
 );
-SET @total_grade  := (select sum(grade) from resultstudent);
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
 ("Jean",10,5.5),
 ("Mike",12,6.0),
 ("Rudy",2,1.5),
-("Karl",5,3.5),
-("Molly",7,4.0);
+("Karl",5,3.5);
 
 DELIMITER //
 CREATE PROCEDURE check_total_point()
@@ -38,6 +36,4 @@ BEGIN
     END IF; 
 END //
 DELIMITER ;
-
-
-
+SET @total_grade  := (select sum(grade) from resultstudent);

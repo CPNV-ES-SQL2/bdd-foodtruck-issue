@@ -36,13 +36,11 @@ CREATE TABLE resultstudent(
     grade decimal (5,1),
 	PRIMARY KEY (id)
 );
-SET @total_grade  := (select sum(grade) from resultstudent);
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
 ("Jean",10,5.5),
 ("Mike",12,6.0),
 ("Rudy",2,1.5),
 ("Karl",5,3.5),
-("Molly",7,4.0);
 
 DELIMITER //
 CREATE PROCEDURE check_total_point()
@@ -54,7 +52,6 @@ BEGIN
         SELECT ROUND(@total_point / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_point;
     END IF;
 END //
-
 CREATE PROCEDURE check_total_grade()
 BEGIN
 	IF @total_grade IS NULL THEN
@@ -67,11 +64,15 @@ END //
 DELIMITER ;
 ```
 
-J'execute le script 1 dans la session 2
+J'exécute le script 1 dans la session 2
 
 ```sql
 -- Script 1, session 2 seulement :
-SET @total_point := (SELECT sum(points) FROM resultstudent);
+INSERT INTO resultstudent(firstname,points,grade) VALUES
+("Molly",7,4.0);
+
+SET @total_grade := (select sum(grade) from resultstudent);
+SET @total_point := (select sum(points) from resultstudent);
 ```
 
 Je vérifie que j'ai bien les deux sessions actives via SHOW PROCESSLIST:
@@ -90,7 +91,7 @@ SELECT ROUND(@total_grade / (SELECT COUNT(DISTINCT firstname) FROM resultstudent
 ```
 
 * __Then__ : 
-	* Session 1 : J'attends que cette session me renvoie une erreur 1644 indiquant que les 2 variables user-defined sont vides.
+	* Session 1 : J'attends que cette session me renvoie une erreur 1644 pour @total_point et une moyenne de note fausse
 	* Session 2 : J'attends que cette session me renvoie le nombre de points et la note moyen par élève.
 
 ```sql
@@ -109,16 +110,21 @@ SELECT ROUND(@total_grade / (SELECT COUNT(DISTINCT firstname) FROM resultstudent
 
 -- Session 2 :
 ERROR 1644 (45000): The variable @total_point is empty
-ERROR 1644 (45000): The variable @total_grade is empty
+
++---------------+
+| average_grade |
++---------------+
+|           3.3 |
++---------------+
 ```
 
 * [ma vidéo de démonstration](https://www.youtube.com/watch?v=uuN_KMPYwGg)
 
 ### Scénario 2 : Définir et utiliser une variable "multi-session"
 
-
 * __Given__ : J'aimerai que la variable @total_grade puisse être accessible dans n'importe que session. 
-Je re-initialise la db via le script setup 
+
+Je re-initialise la db via le script setup (*différent du setup du scénario 1*)
 
 ```sql
 -- Script setup
@@ -138,45 +144,79 @@ INSERT INTO resultstudent(firstname,points,grade) VALUES
 ("Jean",10,5.5),
 ("Mike",12,6.0),
 ("Rudy",2,1.5),
-("Karl",5,3.5),
-("Molly",7,4.0);
+("Karl",5,3.5);
 
 DELIMITER //
 CREATE PROCEDURE check_total_grade()
 BEGIN
-	IF @total_grade IS NULL THEN
+	IF (SELECT value FROM variabletable WHERE name = 'total_grade') IS NULL THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'The variable @total_grade is empty';
+            SET MESSAGE_TEXT = 'The variable total_grade is empty';
 	ELSE
-        SELECT ROUND(@total_grade / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
+       SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
     END IF; 
+END //
+DELIMITER ;
+
+CREATE TABLE variabletable(
+	name varchar(100) PRIMARY KEY,
+	value VARCHAR(256)
+);
+INSERT INTO variabletable(name,value) VALUES ('total_grade', 100);
+
+DELIMITER //
+CREATE PROCEDURE update_variable(
+    IN u_variable VARCHAR(64),
+    IN u_value VARCHAR(256)
+)
+BEGIN
+    UPDATE variabletable
+    SET value = u_value
+    WHERE name = u_variable;
 END //
 DELIMITER ;
 ```
 
 Je prépare deux sessions différentes :
-	- Session 1 : Doit avoir exécuter le premier script et défini la variable "multi-session" @total_grade
-	- Session 2 : **NE** doit **PAS** exécuté le premier script et donc n'a pas défini la variable @total_grade
+	- Session 1 : Doit avoir exécuter le premier script et d'update la variable "multi-session" total_grade
+	- Session 2 : **NE** doit **PAS** exécuté le premier script et donc n'a pas défini la variable total_grade
 
 ```sql
 -- Seulement Session 1, Script 1
+INSERT INTO resultstudent(firstname,points,grade) VALUES
+("Molly",7,4.0);
 
+SET @total_grade := (select sum(grade) from resultstudent);
+CALL update_variable('total_grade', @total_grade)
 ```
 
-* __When__ :  J'execute le second script sur les 2 sessions
+* __When__ : J'exécute le second script sur les 2 sessions
 
 ```sql
 -- Script 2
-SELECT ROUND(@total_grade / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
+call check_total_grade;
+
+-- Ce qui exécutera la procédure check_total_grade() :
+BEGIN
+	IF (SELECT value FROM variabletable WHERE name = 'total_grade') IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'The variable total_grade is empty';
+	ELSE
+       SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
+    END IF; 
+END //
 ```
 
 * __Then__ : Les 2 sessions devrait avoir la même note en moyenne par élèves.
 
 ```sql
--- Session 1
+-- les 2 sessions devraient obtenir la même note en moyenne
 
-
--- Session 2
++---------------+
+| average_grade |
++---------------+
+|           4.1 |
++---------------+
 ```
 
 * [ma vidéo de démonstration](https://www.youtube.com/watch?v=uuN_KMPYwGg)

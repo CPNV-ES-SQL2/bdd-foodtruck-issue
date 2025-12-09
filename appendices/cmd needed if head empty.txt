@@ -1,5 +1,66 @@
+chemin de présentation :
+--- PRESENTATION DU "THEME" ---
+Issue #9 -> https://github.com/CPNV-ES-SQL2/sql-progress/issues/9
+
+Parler du sujet puis des objectifs du scénario puis du scénario : https://github.com/CPNV-ES-SQL2/bdd-foodtruck-issue/blob/feature/userAndSystemVariables/markdown/UserSystemVariable.md
+
+
+----- SCENAR1 -----
+--- GIVEN ---
+Get 2 cmd pour les sessions -> cd C:\Users\pr28mdn\Desktop\SQL2\sql-progress\appendices (easier source)
+
+connect to MySQL avec sql2: mysql -u sql2 -p -h localhost 
+
+Exec script setup -> source scenario1_setup.sql sur SESSION 2 (very important)
+
+check par SHOW DATABASES; 
+
+check table/data par SELECT firstname,points FROM resultstudent;
+
+check sessions par SHOW PROCESSLIST; (pas trop de temps, just check)
+
+réaliser use sql2sce1; pour placer l'autre session dans db
+ 
+exec source scenario1_1.sql sur SESSION 1 
+
+check @total_point sur les 2
+
+--- WHEN ---
+
+exec source scenario1_2.sql sur les 2
+
+--- THEN ---
+
+show result : S1 -> get 7.2 moyen de point || S2 -> error 1644 = empty
+
+show error 1644 par officiel doc -> https://downloads.mysql.com/docs/mysql-errors-8.0-en.a4.pdf -> search 1644
+ou 
+https://dev.mysql.com/doc/mysql-errors/8.0/en/server-error-reference.html
+
+----- SCENAR 2 -----
+
+say why variable defined et system cannot do this with doc
+User defined : https://dev.mysql.com/doc/refman/8.4/en/user-variables.html
+system :https://dev.mysql.com/doc/refman/9.1/en/using-system-variables.html (pas explicite, implique qu'un utilisateur stantard ne peut pas le faire)
+ 
+say how to do
+--- GIVEN ---
+2 cmd
+
+do setup 2
+
+check variable
+
+exec sce2_1 on whatever session
+
+check variable only on the session used
+
+exec sec2_2 on both session
+
+show result and explain
+
+
 quelque cmd si nécessaire durant prés. ou autre moment
-mysql  Ver 8.0.44 for Win64 on x86_64 (MySQL Community Server - GPL)
 
 chemin cmd to appendices -> easier use of source cmd
 "C:\Users\pr28mdn\Desktop\SQL2\bdd-foodtruck-issue\appendices"
