@@ -22,7 +22,7 @@ Il s'agit de prouver par la pratique les points suivants:
 
 ## Scénario
 
-Ces scripts sql doivent etre executer pour le bon fonctionnement des scénarios:
+Ces scripts sql doivent être exécuté pour le bon fonctionnement des scénarios :
 
 -   [fichier pour importer la testdb](../appendices/initDummyDatabase.sql)
 
@@ -34,7 +34,7 @@ Avant chaque nouveau scénario, nettoyer l'historique de performance_schema :
 TRUNCATE TABLE performance_schema.events_statements_history_long;
 ```
 
-note: modifier le script `configurePerformanceSchema.sql` avec votre host et utilisateur pour les acteurs.
+> modifier le script `configurePerformanceSchema.sql` avec votre host et utilisateur pour les acteurs.
 
 [source](https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html)
 
