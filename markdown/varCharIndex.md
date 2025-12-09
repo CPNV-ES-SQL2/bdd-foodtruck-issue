@@ -149,11 +149,13 @@ ORDER BY size_in_kb DESC;
 
 ### Vidéo de démonstration
 
-Anciens tests:
- - [Mise en place de la database](https://youtu.be/cSMaOUgi2As)
- - [Tests de performance](https://youtu.be/7YIYA1VJKf0)
-Nouveaux tests:
- - TODO, après avoir validé les nouveaux tests
+[Lien vers une playlist YouTube avec les différentes étapes du test](https://youtube.com/playlist?list=PLsLGSX1UKwhp0UH9aw8ZHuAhlLIvL-QQ9&si=iZH25RgzK47snMRp)
+Lien des vidéos individuelles :
+ - [Mise en place de la database](https://youtu.be/DgztFLnYqkY)
+ - [Test 1](https://youtu.be/cTjeNzNvNOA)
+ - [Test 2](https://youtu.be/8T5NmEBE7Vs)
+ - [Test 3](https://youtu.be/EJiwWyjsdss)
+ - [Test 4](https://youtu.be/0ICXNKU13n8)
 ## Théorie et Sources
 
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
