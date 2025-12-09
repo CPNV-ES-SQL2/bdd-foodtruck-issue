@@ -66,7 +66,7 @@ Noter le connection_id
 SELECT event_name, current_number_of_bytes_used
 FROM performance_schema.memory_summary_by_thread_by_event_name
 WHERE thread_id = @tid
-ORDER BY event_name DESC
+ORDER BY event_name DESC;
 ```
 
 Lancer le [script python](appendices\sqlMonitor.py) :
