@@ -58,6 +58,10 @@ SET @tid = (SELECT thread_id
 
 Noter le connection_id
 
+```sql
+SELECT @cid;
+```
+
 -   (When) évaluer la mémoire utilise par une requête en utilisant un script python
 
 > La requête suivante est utilisée pour connaître la consommation mémoire par les différents event MySQL. Ceci est utilisé constamment dans le script python utilisé pour pouvoir monitorer la consommation mémoire.
