@@ -28,7 +28,7 @@ Ces scripts sql doivent etre executer pour le bon fonctionnement des scénarios:
 
 -   [fichier pour importer la configuration performance schema](../appendices/configurePerformanceSchema.sql)
 
-Avant chaque nouveau scénario, nettoyer l'historique :
+Avant chaque nouveau scénario, nettoyer l'historique de performance_schema :
 
 ```sql
 TRUNCATE TABLE performance_schema.events_statements_history_long;
@@ -45,8 +45,6 @@ https://planetscale.com/blog/profiling-memory-usage-in-mysql
 
 -   (Given) créer une nouvelle session en récupérant le thread id de la session
 
-Dans un nouveau terminal :
-
 ```bash
 mysql -u username -p
 ```
@@ -60,9 +58,9 @@ SET @tid = (SELECT thread_id
 
 Noter le connection_id
 
--   (When) évaluer la mémoire initial avant la requête et effectuer la requête
+-   (When) évaluer la mémoire utilise par une requête en utilisant un script python
 
-La requête suivante est utilisé pour connaitre la consommation mémoire par les différents event MySQL. Ceci devrait être utilisé constament durant l'execution d'une requête (par un script par exemple) pour pouvoir monitorer la consommation mémoire.
+> La requête suivante est utilisée pour connaître la consommation mémoire par les différents event MySQL. Ceci est utilisé constamment dans le script python utilisé pour pouvoir monitorer la consommation mémoire.
 
 ```sql
 SELECT event_name, current_number_of_bytes_used
@@ -91,7 +89,7 @@ GROUP BY products.category_id
 ORDER BY revenue DESC;
 ```
 
--   (Then) Rassembler la mémoire utilisé pendant l'exécution de la requête
+-   (Then) Observer le nombre indiquer pour la memoire minimum et maximum
 
 ### Use case : Mesurer le temps d'exécution d'une requête (ms)
 
@@ -122,8 +120,6 @@ FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%mos
 ```
 
 -   (Then) Constater le temps d'exécution
-
-Le temps en milisecondes devrait être affiché des requêtes contenant "most profitable category"
 
 ### Comparer des requêtes sur leur temps d'exécution
 
