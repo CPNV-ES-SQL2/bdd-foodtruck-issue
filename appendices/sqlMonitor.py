@@ -30,8 +30,6 @@ class MemoryProfiler:
         self.color_sequence = ['#ffc59b', '#d4c9fe', '#a9dffe', '#a9ecb8',
                                '#fff1a8', '#fbbfc7', '#fd812d', '#a18bf5',
                                '#47b7f8', '#40d763', '#f2b600', '#ff7082']
-        self.min_total = float('inf')
-        self.max_total = 0
         plt.rcParams['axes.xmargin'] = 0
         plt.rcParams['axes.ymargin'] = 0
 
@@ -49,11 +47,6 @@ class MemoryProfiler:
             usage = float(sorted_results[i][1]) / 1024
             self.y[i].append(usage)
             total_at_point += usage
-        
-        if total_at_point < self.min_total:
-            self.min_total = total_at_point
-        if total_at_point > self.max_total:
-            self.max_total = total_at_point
         
         if (len(self.x) > 50):
             self.x.pop(0)
@@ -73,6 +66,23 @@ class MemoryProfiler:
             label_with_usage = f"{mem_type} ({usage:.2f} KB)"
             self.mem_labels.append(label_with_usage)
 
+    def get_windowed_min_max(self):
+        """Calculate min and max total memory for current window only"""
+        if len(self.y) == 0 or len(self.y[0]) == 0:
+            return None, None
+        
+        min_total = float('inf')
+        max_total = 0
+        
+        for j in range(len(self.y[0])):
+            total_at_point = sum(self.y[i][j] for i in range(len(self.y)))
+            if total_at_point < min_total:
+                min_total = total_at_point
+            if total_at_point > max_total:
+                max_total = total_at_point
+        
+        return min_total, max_total
+
     def draw_plot(self, plt, current_results):
         plt.clf()
         plt.stackplot(self.x, self.y, colors = self.color_sequence)
@@ -81,8 +91,9 @@ class MemoryProfiler:
         plt.ylabel("Kilobytes of memory")
         
         title_text = "Memory Usage"
-        if self.max_total > 0 and self.min_total < float('inf'):
-            diff = self.max_total - self.min_total
+        min_total, max_total = self.get_windowed_min_max()
+        if min_total is not None and max_total is not None and max_total > 0:
+            diff = max_total - min_total
             title_text += f" (Min-Max Difference: {diff:.2f} KB)"
         plt.title(title_text, fontsize=12, pad=10)
 
