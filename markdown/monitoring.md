@@ -95,7 +95,9 @@ ORDER BY revenue DESC;
 
 -   (Then) Observer le nombre indiquer pour la memoire minimum et maximum
 
-### Use case : Mesurer le temps d'exécution d'une requête (ms)
+[Vidéo](https://youtu.be/hcIktgakZYU)
+
+### Mesurer le temps d'exécution d'une requête (ms)
 
 Source:
 https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
@@ -124,6 +126,8 @@ FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%mos
 ```
 
 -   (Then) Constater le temps d'exécution
+
+[Vidéo](https://youtu.be/hGmmd-n1EN0)
 
 ### Comparer des requêtes sur leur temps d'exécution
 
@@ -188,6 +192,8 @@ FROM performance_schema.events_statements_history_long WHERE SQL_TEXT LIKE '%Sec
 SELECT event_name AS Stage, TRUNCATE(TIMER_WAIT/1e9,6) AS Duration_MS
 FROM performance_schema.events_stages_history_long WHERE NESTING_EVENT_ID=<optimized id>;
 ```
+
+[Vidéo](https://youtu.be/VYNvJ1GvweY)
 
 ### Diagnostiquer des requêtes pour les optimiser
 
