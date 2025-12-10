@@ -36,14 +36,9 @@ TRUNCATE TABLE performance_schema.events_statements_history_long;
 
 > modifier le script `configurePerformanceSchema.sql` avec votre host et utilisateur pour les acteurs.
 
-[source](https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html)
+-    [source](https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html)
 
 ### Mesurer le poids d'une requête (RAM)
-
-Sources :
-https://dev.mysql.com/doc/refman/8.4/en/monitor-mysql-memory-use.html
-https://dev.mysql.com/doc/refman/8.4/en/performance-schema-memory-summary-tables.html
-https://planetscale.com/blog/profiling-memory-usage-in-mysql
 
 -   (Given) créer une nouvelle session en récupérant le thread id de la session
 
@@ -97,13 +92,14 @@ ORDER BY revenue DESC;
 
 -   (Then) Observer le nombre indiquer pour la memoire minimum et maximum
 
+Sources :
+-    https://dev.mysql.com/doc/refman/8.4/en/monitor-mysql-memory-use.html
+-    https://dev.mysql.com/doc/refman/8.4/en/performance-schema-memory-summary-tables.html
+-    https://planetscale.com/blog/profiling-memory-usage-in-mysql
+
 [Vidéo](https://youtu.be/hcIktgakZYU)
 
 ### Mesurer le temps d'exécution d'une requête (ms)
-
-Sources :
-https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
-https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-events-statements-history-long-table.html
 
 -   (Given) Executer la requête à mesurer
 
@@ -130,13 +126,13 @@ FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%mos
 
 -   (Then) Constater le temps d'exécution
 
+Sources :
+-    https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
+-    https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-events-statements-history-long-table.html
+
 [Vidéo](https://youtu.be/hGmmd-n1EN0)
 
 ### Comparer des requêtes sur leur temps d'exécution
-
-Sources :
-https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
-https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-events-stages-history-long-table.html
 
 -   (Given) Exécuter les deux requêtes à comparer
 
@@ -197,12 +193,13 @@ SELECT event_name AS Stage, TRUNCATE(TIMER_WAIT/1e9,6) AS Duration_MS
 FROM performance_schema.events_stages_history_long WHERE NESTING_EVENT_ID=<optimized id>;
 ```
 
+Sources :
+-    https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
+-    https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-events-stages-history-long-table.html
+
 [Vidéo](https://youtu.be/VYNvJ1GvweY)
 
 ### Diagnostiquer des requêtes pour les optimiser
-
-Sources:
-https://dev.mysql.com/doc/refman/8.4/en/performance-schema-examples.html
 
 -   (Given) Une série de requêtes sont exécuté
 
@@ -221,17 +218,17 @@ LIMIT 5;
 
 -   (Then) Optimiser la requête et voir le résultat
 
-## Vidéo
 
--   [Vidéo de démonstartion](lien-vers-une-vidéo)
+Source :
+-    https://dev.mysql.com/doc/refman/8.4/en/performance-schema-examples.html
 
 ## Théorie et Sources
 
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
 
-[Performance Schema](https://dev.mysql.com/doc/refman/8.4/en/performance-schema.html)
-[Events](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-statement-tables.html)
-[Threads](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-threads-table.html)
-[Instruments](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-setup-instruments-table.html)
-[Consumers](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-setup-consumers-table.html)
-[Actors](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-setup-actors-table.html)
+-    [Performance Schema](https://dev.mysql.com/doc/refman/8.4/en/performance-schema.html)
+-    [Events](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-statement-tables.html)
+-    [Threads](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-threads-table.html)
+-    [Instruments](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-setup-instruments-table.html)
+-    [Consumers](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-setup-consumers-table.html)
+-    [Actors](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-setup-actors-table.html)
