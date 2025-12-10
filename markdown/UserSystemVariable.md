@@ -62,6 +62,7 @@ BEGIN
     END IF; 
 END //
 DELIMITER ;
+SET @total_grade  := (select sum(grade) from resultstudent);
 ```
 
 J'exécute le script 1 dans la session 2
