@@ -40,7 +40,9 @@ TRUNCATE TABLE performance_schema.events_statements_history_long;
 
 ### Mesurer le poids d'une requête (RAM)
 
-Source:
+Sources :
+https://dev.mysql.com/doc/refman/8.4/en/monitor-mysql-memory-use.html
+https://dev.mysql.com/doc/refman/8.4/en/performance-schema-memory-summary-tables.html
 https://planetscale.com/blog/profiling-memory-usage-in-mysql
 
 -   (Given) créer une nouvelle session en récupérant le thread id de la session
@@ -99,8 +101,9 @@ ORDER BY revenue DESC;
 
 ### Mesurer le temps d'exécution d'une requête (ms)
 
-Source:
+Sources :
 https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
+https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-events-statements-history-long-table.html
 
 -   (Given) Executer la requête à mesurer
 
@@ -131,8 +134,9 @@ FROM performance_schema.events_statements_history_long WHERE SQL_TEXT like '%mos
 
 ### Comparer des requêtes sur leur temps d'exécution
 
-Source:
+Sources :
 https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-query-profiling.html
+https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-events-stages-history-long-table.html
 
 -   (Given) Exécuter les deux requêtes à comparer
 
@@ -225,8 +229,9 @@ LIMIT 5;
 
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
 
-Source MySQL !!!!
-
-```
-Comment mesure le temps de la requête
-```
+[Performance Schema](https://dev.mysql.com/doc/refman/8.4/en/performance-schema.html)
+[Events](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-statement-tables.html)
+[Threads](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-threads-table.html)
+[Instruments](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-setup-instruments-table.html)
+[Consumers](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-setup-consumers-table.html)
+[Actors](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-setup-actors-table.html)
