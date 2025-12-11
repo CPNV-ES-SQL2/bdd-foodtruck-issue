@@ -7,17 +7,7 @@ INSERT INTO performance_schema.setup_actors
 VALUES('localhost','root','%','YES','YES');
 
 UPDATE performance_schema.setup_instruments
-SET ENABLED = 'YES', TIMED = 'YES'
-WHERE NAME LIKE '%statement/%';
-
-UPDATE performance_schema.setup_instruments
-SET ENABLED = 'YES', TIMED = 'YES'
-WHERE NAME LIKE '%stage/%';
+SET ENABLED = 'YES', TIMED = 'YES';
 
 UPDATE performance_schema.setup_consumers
-SET ENABLED = 'YES'
-WHERE NAME LIKE '%events_statements_%';
-
-UPDATE performance_schema.setup_consumers
-SET ENABLED = 'YES'
-WHERE NAME LIKE '%events_stages_%';
+SET ENABLED = 'YES';
