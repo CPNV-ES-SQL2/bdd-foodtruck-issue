@@ -161,4 +161,11 @@ Lien des vidéos individuelles :
 Résumé des sources (un résumé produit par chat gpt est ok, pour autant que vous le remettiez en page et le validiez)
 
 Source MySQL !!!!
+ - [How MySQL Uses Indexes](https://dev.mysql.com/doc/refman/8.4/en/mysql-indexes.html)
+ - [Column Indexes](https://dev.mysql.com/doc/refman/8.4/en/column-indexes.html)
+ - [Multiple column indexes](https://dev.mysql.com/doc/refman/8.4/en/multiple-column-indexes.html)
+
+## Sources non MySQL
+ - [planetscale, explication et animation B-Tree utilisée durant la présentation](https://planetscale.com/blog/btrees-and-database-indexes)
+ - [Wikipedia](https://en.wikipedia.org/wiki/B-tree)
 
