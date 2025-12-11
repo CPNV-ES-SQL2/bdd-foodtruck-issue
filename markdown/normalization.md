@@ -40,6 +40,8 @@ INSERT INTO Courses_Instructors (instructor_id, course_id) VALUES
 (2, 1);
 ```
 
+[Vidéo](https://youtu.be/r1RSDEOmlvg)
+
 ## Théorie et Sources
 
 - [Principes de base de la normalisation des bases de données](https://learn.microsoft.com/fr-fr/office/troubleshoot/access/database-normalization-description)
