@@ -111,7 +111,7 @@ Je relance les requêtes de sélection :
 * Un index composite est créé :
 
   ```sql
-  CREATE INDEX idx_name ON personas(first_name, last_name);
+  CREATE INDEX idx_full_name ON personas(first_name, last_name);
   ```
 
 ### When
