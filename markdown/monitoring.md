@@ -14,11 +14,6 @@ Il s'agit de prouver par la pratique les points suivants:
     -   Mesurer le poids d'une requête (RAM)
     -   Mesurer le temps d'exécution d'une requête (ms)
     -   Comparer des requêtes sur leur poids et leur temps d'exécution
-    -   Diagnostiquer des requêtes pour les optimiser
--   Comment utiliser `sys Schema` pour :
-    -   Synthétiser les données de `Performance Schema`
-    -   Utiliser les procédures `sys Schema`
-    -   Générer des rapports de diagnostiques
 
 ## Scénario
 
@@ -198,29 +193,6 @@ Sources :
 -    https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-events-stages-history-long-table.html
 
 [Vidéo](https://youtu.be/VYNvJ1GvweY)
-
-### Diagnostiquer des requêtes pour les optimiser
-
--   (Given) Une série de requêtes sont exécuté
-
--   (When) Inspecter les requêtes pour voir les plus couteuse
-
-```sql
-SELECT
-  digest_text,
-  COUNT_STAR AS exec_count,
-  ROUND(AVG_TIMER_WAIT/1e9, 3) AS avg_ms,
-  ROUND(SUM_TIMER_WAIT/1e9, 3) AS total_ms
-FROM performance_schema.events_statements_summary_by_digest
-ORDER BY avg_ms DESC
-LIMIT 5;
-```
-
--   (Then) Optimiser la requête et voir le résultat
-
-
-Source :
--    https://dev.mysql.com/doc/refman/8.4/en/performance-schema-examples.html
 
 ## Théorie et Sources
 
