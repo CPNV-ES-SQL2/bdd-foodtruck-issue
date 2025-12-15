@@ -46,7 +46,7 @@ INSERT INTO Courses_Instructors (instructor_id, course_id) VALUES
 ### Scénario 2: Identification de la violation de la 4NF.
 #### Given
 
-Continuons avec le contexte de la base de données de gestion des cours mais que nous voulons ajouté une champ `phonenumber` pour les étudiants et laissons les éléves entrer leur numéro de téléphone pendant un certains temps. Exutons le script `given.sql` pour créer la base de données en BCNF mais violant la 4NF ainsi que la simulation.
+Continuons avec le contexte de la base de données de gestion des cours mais que nous voulons ajouté un champ `phonenumber` pour les étudiants et laissons les éléves entrer leur numéro de téléphone pendant un certains temps. Exutons le script `given.sql` pour créer la base de données en BCNF mais violant la 4NF ainsi que la simulation.
 Imaginons que certains étudiants ont plusieurs numéros de téléphone. Par example, l'étudiant avec `Ethann` a les numéros `+1234567890` et `+0987654322`. Par example, pour de jeune étudiant donc le numéro de téléphone des parents est aussi enregistré.
 ```sql
 INSERT INTO Students (student_id, name, phonenumber) VALUES
@@ -70,6 +70,29 @@ INSERT INTO Students_Phonenumbers (student_id, phonenumber) VALUES
 ### Scénario 3: Identification de la violation de la 5NF.
 #### Given
 
+Pour celle ci prenons un contexte différent, car rare sont les cas d'utilisation de la 5NF. Imaginons une base de données de gestion des projets où chaque projet peut être associé à plusieurs employés et chaque employé peut travailler sur plusieurs projets. De plus, chaque employé peut avoir plusieurs rôles dans un projet. Exutons le script `given.sql` pour créer la base de données en 4NF mais violant la 5NF. Imaginons que l'employé `Bob` travaille sur le projet `Alpha` en tant que `Developer` et `Manager`.
+```sql
+INSERT INTO Employees_Projects_Roles (project_id, employee_id, role) VALUES
+(1, 2, 'Developer');
+```
+
+*note: la colone s'insère correctement*
+
+#### When
+
+Nous remarquons que la table `Projects_Employees_Roles` viole la 5NF car il existe une dépendance jointe entre `project_id`, `employee_id` et `role`. Car un employé peut avoir plusieurs rôles dans un projet indépendamment des autres attributs.
+Executons la migration `5nf_migration.sql` pour normaliser la base de données en 5NF.
+
+#### Then
+
+Après avoir appliqué la migration, nous avons créé trois nouvelles tables: `Projects_Employees`, `Employees_Roles` et `Projects_Roles` pour gérer les relations entre les projets, les employés et leurs rôles. La table `Projects_Employees_Roles` a été supprimée, ce qui élimine la dépendance jointe problématique. Maintenant, `Bob` la query si bob devient `Tester` aussi dans le projet `Alpha`:
+```sql
+INSERT INTO Projects_Roles (project_id, role) VALUES
+(1, 'Tester');
+
+INSERT INTO Employees_Roles (employee_id, project_role_id) VALUES
+(2, (SELECT project_role_id FROM Projects_Roles WHERE project_id = 1 AND role = 'Tester'));
+```
 
 ## Théorie et Sources
 
