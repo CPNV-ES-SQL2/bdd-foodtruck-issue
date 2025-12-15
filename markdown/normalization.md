@@ -43,6 +43,34 @@ INSERT INTO Courses_Instructors (instructor_id, course_id) VALUES
 
 [Vidéo](https://youtu.be/r1RSDEOmlvg)
 
+### Scénario 2: Identification de la violation de la 4NF.
+#### Given
+
+Continuons avec le contexte de la base de données de gestion des cours mais que nous voulons ajouté une champ `phonenumber` pour les étudiants et laissons les éléves entrer leur numéro de téléphone pendant un certains temps. Exutons le script `given.sql` pour créer la base de données en BCNF mais violant la 4NF ainsi que la simulation.
+Imaginons que certains étudiants ont plusieurs numéros de téléphone. Par example, l'étudiant avec `Ethann` a les numéros `+1234567890` et `+0987654322`. Par example, pour de jeune étudiant donc le numéro de téléphone des parents est aussi enregistré.
+```sql
+INSERT INTO Students (student_id, name, phonenumber) VALUES
+(1, 'Ethann', '+0987654321');
+```
+*note: ERROR 1062 (23000): Duplicate entry '1' for key 'Students.PRIMARY'*
+
+#### When
+
+Nous remarquons que la table `Students` viole la 4NF car il existe une dépendance multivaluée entre `student_id` et `phonenumber`. Car un étudiant peut avoir plusieurs numéros de téléphone indépendamment des autres attributs.
+Executons la migration `4nf_migration.sql` pour normaliser la base de données en 4NF.
+
+#### Then
+
+Après avoir appliqué la migration, nous avons créé une nouvelle table `Students_Phonenumbers` pour gérer la relation entre les étudiants et leurs numéros de téléphone. La table `Students` ne contient plus le champ `phonenumber`, ce qui élimine la dépendance multivaluée problématique.
+```sql
+INSERT INTO Students_Phonenumbers (student_id, phonenumber) VALUES
+(1, '+0987654322');
+```
+
+### Scénario 3: Identification de la violation de la 5NF.
+#### Given
+
+
 ## Théorie et Sources
 
 - [Principes de base de la normalisation des bases de données](https://learn.microsoft.com/fr-fr/office/troubleshoot/access/database-normalization-description)
