@@ -72,6 +72,11 @@ INSERT INTO Students_Phonenumbers (student_id, phonenumber) VALUES
 
 Pour celle ci prenons un contexte différent, car rare sont les cas d'utilisation de la 5NF. Imaginons une base de données de gestion des projets où chaque projet peut être associé à plusieurs employés et chaque employé peut travailler sur plusieurs projets. De plus, chaque employé peut avoir plusieurs rôles dans un projet. Exutons le script `given.sql` pour créer la base de données en 4NF mais violant la 5NF. Imaginons que l'employé `Bob` travaille sur le projet `Alpha` en tant que `Developer` et `Manager`.
 ```sql
+-- list all roles of Bob in project Alpha
+SELECT role
+FROM Employees_Projects_Roles
+WHERE employee_id = 2 AND project_id = 1;
+
 INSERT INTO Employees_Projects_Roles (project_id, employee_id, role) VALUES
 (1, 2, 'Developer');
 ```
@@ -87,6 +92,12 @@ Executons la migration `5nf_migration.sql` pour normaliser la base de données e
 
 Après avoir appliqué la migration, nous avons créé trois nouvelles tables: `Projects_Employees`, `Employees_Roles` et `Projects_Roles` pour gérer les relations entre les projets, les employés et leurs rôles. La table `Projects_Employees_Roles` a été supprimée, ce qui élimine la dépendance jointe problématique. Maintenant, `Bob` la query si bob devient `Tester` aussi dans le projet `Alpha`:
 ```sql
+-- list all roles of Bob in project Alpha
+SELECT pr.role
+FROM Employees_Roles er
+JOIN Projects_Roles pr ON er.project_role_id = pr.project_role_id
+WHERE er.employee_id = 2 AND pr.project_id = 1;
+
 INSERT INTO Projects_Roles (project_id, role) VALUES
 (1, 'Tester');
 
