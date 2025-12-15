@@ -1,7 +1,8 @@
 CREATE TABLE Courses_Instructors (
+  course_instructor_id INT AUTO_INCREMENT PRIMARY KEY,
   course_id INT NOT NULL,
   instructor_id INT NOT NULL,
-  PRIMARY KEY (course_id, instructor_id),
+  UNIQUE (course_id, instructor_id),
   FOREIGN KEY (course_id) REFERENCES Courses(course_id),
   FOREIGN KEY (instructor_id) REFERENCES Instructors(instructor_id)
 );

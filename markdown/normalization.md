@@ -17,14 +17,15 @@ Il s'agit de prouver par la pratique les points suivants:
 ## Scénario
 ### Scénario 1: Identification de la violation de la BCNF.
 #### Given
-Prenons le contexte d'une base de données de gestion des cours par example pour le CPNV. Exutons le script `given.sql` pour créer la base de données en 3NF mais violant la BCNF. Imaginons que `Ethann`, `Julien` et `Nathan` participe au cours `MAW` et que leur instructeur est `Nicolas`. 
+Prenons le contexte d'une base de données de gestion des cours par example pour le CPNV. Exutons le script `given.sql` pour créer la base de données en 3NF mais violant la BCNF. Imaginons que 4 éléve participe au cours `Database Systems` et que leur instructeur est `Nicolas`. 
 
-Imaginons maintenant que `Nicolas` donne le cours `MAW` en paralèle avec un autre instructeur `Julien`. 
+Imaginons maintenant que `Nicolas` donne le cours `Database Systems` en paralèle avec un autre instructeur `Julien`. 
 ```sql
 INSERT INTO Students_Courses (student_id, course_id, instructor_id) VALUES
 (1, 1, 2),
 (2, 1, 2),
-(3, 1, 2);
+(3, 1, 2),
+(4, 1, 2);
 ```
 *note: ERROR 1062 (23000): Duplicate entry '1-1' for key 'Students_Courses.PRIMARY'*
 
