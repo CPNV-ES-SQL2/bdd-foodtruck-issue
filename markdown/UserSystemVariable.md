@@ -120,7 +120,7 @@ ERROR 1644 (45000): The variable @total_point is empty
 +---------------+
 ```
 
-* [ma vidéo de démonstration](https://www.youtube.com/watch?v=uuN_KMPYwGg)
+* [ma vidéo de démonstration](https://www.youtube.com/watch?v=1jY8VqpmeZg)
 
 ### Scénario 2 : Définir et utiliser une variable "multi-session"
 
@@ -222,7 +222,7 @@ END //
 +---------------+
 ```
 
-* [ma vidéo de démonstration](https://www.youtube.com/watch?v=uuN_KMPYwGg)
+* [ma vidéo de démonstration](https://www.youtube.com/watch?v=U5fzLqZUA0s)
 ## Théorie et Sources WIP
 
 ## Source
