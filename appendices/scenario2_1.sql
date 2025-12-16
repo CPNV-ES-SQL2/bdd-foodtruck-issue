@@ -1,5 +1,2 @@
-INSERT INTO resultstudent(firstname,points,grade) VALUES 
-("Molly",7,4.0);
-
-SET @total_grade  := (select sum(grade) from resultstudent);
+SET @total_grade := call sum_grade();
 CALL update_variable('total_grade', @total_grade)

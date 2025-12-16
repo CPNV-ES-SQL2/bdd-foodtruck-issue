@@ -62,7 +62,15 @@ BEGIN
     END IF; 
 END //
 DELIMITER ;
+SET @total_grade  := (select sum(grade) from resultstudent);
 ```
+
+Je vérifie que j'ai bien les deux sessions actives via SHOW PROCESSLIST:
+
+| Id  | User | Host            | db       | Command | Time | State | Info             |
+|-----|------|------------------|----------|---------|------|-------|------------------|
+| 197 | sql2 | localhost:58561 | sql2sce1 | Sleep   | 56   |       | NULL             |
+| 198 | sql2 | localhost:65124 | sql2sce1 | Query   | 0    | init  | SHOW PROCESSLIST |
 
 J'exécute le script 1 dans la session 2
 
@@ -75,12 +83,6 @@ SET @total_grade := (select sum(grade) from resultstudent);
 SET @total_point := (select sum(points) from resultstudent);
 ```
 
-Je vérifie que j'ai bien les deux sessions actives via SHOW PROCESSLIST:
-
-| Id  | User | Host            | db       | Command | Time | State | Info             |
-|-----|------|------------------|----------|---------|------|-------|------------------|
-| 197 | sql2 | localhost:58561 | sql2sce1 | Sleep   | 56   |       | NULL             |
-| 198 | sql2 | localhost:65124 | sql2sce1 | Query   | 0    | init  | SHOW PROCESSLIST |
 
 - __When__ : J'exécute le second script sur les deux sessions.
 
@@ -95,7 +97,7 @@ SELECT ROUND(@total_grade / (SELECT COUNT(DISTINCT firstname) FROM resultstudent
 	* Session 2 : J'attends que cette session me renvoie le nombre de points et la note moyen par élève.
 
 ```sql
--- Session 1 :
+-- Session 2 :
 +---------------+
 | average_point |
 +---------------+
@@ -108,7 +110,7 @@ SELECT ROUND(@total_grade / (SELECT COUNT(DISTINCT firstname) FROM resultstudent
 |           4.1 |
 +---------------+
 
--- Session 2 :
+-- Session 1 :
 ERROR 1644 (45000): The variable @total_point is empty
 
 +---------------+
@@ -122,7 +124,7 @@ ERROR 1644 (45000): The variable @total_point is empty
 
 ### Scénario 2 : Définir et utiliser une variable "multi-session"
 
-* __Given__ : J'aimerai que la variable @total_grade puisse être accessible dans n'importe que session. 
+* __Given__ : J'aimerai que le résultat de ma procédure "get_average_grade()" soit accessible par n'importe quel session
 
 Je re-initialise la db via le script setup (*différent du setup du scénario 1*)
 
@@ -147,7 +149,7 @@ INSERT INTO resultstudent(firstname,points,grade) VALUES
 ("Karl",5,3.5);
 
 DELIMITER //
-CREATE PROCEDURE check_total_grade()
+CREATE PROCEDURE get_average_grade()
 BEGIN
 	IF (SELECT value FROM variabletable WHERE name = 'total_grade') IS NULL THEN
         SIGNAL SQLSTATE '45000'
@@ -156,13 +158,18 @@ BEGIN
        SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
     END IF; 
 END //
+
+CREATE procedure sum_grade()
+BEGIN
+	SELECT sum(grade) FROM resultstudent;
+END //
 DELIMITER ;
 
 CREATE TABLE variabletable(
 	name varchar(100) PRIMARY KEY,
 	value VARCHAR(256)
 );
-INSERT INTO variabletable(name,value) VALUES ('total_grade', 100);
+INSERT INTO variabletable(name) VALUES ('total_grade');
 
 DELIMITER //
 CREATE PROCEDURE update_variable(
@@ -177,26 +184,23 @@ END //
 DELIMITER ;
 ```
 
-Je prépare deux sessions différentes :
-	- Session 1 : Doit avoir exécuter le premier script et d'update la variable "multi-session" total_grade
-	- Session 2 : **NE** doit **PAS** exécuté le premier script et donc n'a pas défini la variable total_grade
+Je lance le script 1 afin de stocker la somme total des notes des élèves dans ma table de variable
 
 ```sql
 -- Seulement Session 1, Script 1
-INSERT INTO resultstudent(firstname,points,grade) VALUES
-("Molly",7,4.0);
-
-SET @total_grade := (select sum(grade) from resultstudent);
+SET @total_grade := call sum_grade();
 CALL update_variable('total_grade', @total_grade)
 ```
 
-* __When__ : J'exécute le second script sur les 2 sessions
+Je prépare une second session connecté à la db
+
+* __When__ : J'exécute le second script sur la seconde session
 
 ```sql
 -- Script 2
-call check_total_grade;
+call get_average_grade;
 
--- Ce qui exécutera la procédure check_total_grade() :
+-- Ce qui exécutera la procédure get_average_grade() :
 BEGIN
 	IF (SELECT value FROM variabletable WHERE name = 'total_grade') IS NULL THEN
         SIGNAL SQLSTATE '45000'
@@ -207,11 +211,10 @@ BEGIN
 END //
 ```
 
-* __Then__ : Les 2 sessions devrait avoir la même note en moyenne par élèves.
+* __Then__ : La seconde session devrait voir la note moyenne par élève 
 
 ```sql
--- les 2 sessions devraient obtenir la même note en moyenne
-
+-- Résultat du script 2 sur Session 2
 +---------------+
 | average_grade |
 +---------------+
@@ -234,3 +237,4 @@ END //
 - Autre :
 	- [Liste des codes d'erreurs, officiel MySQL](https://downloads.mysql.com/docs/mysql-errors-8.0-en.a4.pdf)
 	- [Signal et SQLSTATE 45000, officiel MySQL](https://dev.mysql.com/doc/refman/8.4/en/signal.html)
+	- [Table temporaires, officiel MySQL](https://dev.mysql.com/doc/refman/8.4/en/create-temporary-table.html)

@@ -17,7 +17,7 @@ INSERT INTO resultstudent(firstname,points,grade) VALUES
 ("Karl",5,3.5);
 
 DELIMITER //
-CREATE PROCEDURE check_total_grade()
+CREATE PROCEDURE get_average_grade()
 BEGIN
 	IF (SELECT value FROM variabletable WHERE name = 'total_grade') IS NULL THEN
         SIGNAL SQLSTATE '45000'
@@ -26,13 +26,19 @@ BEGIN
        SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
     END IF; 
 END //
+
+create procedure sum_grade()
+begin 
+	 select sum(grade) from resultstudent;
+end //
+
 DELIMITER ;
 
 CREATE TABLE variabletable(
 	name varchar(100) PRIMARY KEY,
 	value VARCHAR(256)
 );
-INSERT INTO variabletable(name,value) VALUES ('total_grade', 100);
+INSERT INTO variabletable(name) VALUES ('total_grade');
 
 DELIMITER //
 CREATE PROCEDURE update_variable(

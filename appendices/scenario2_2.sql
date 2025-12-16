@@ -1,1 +1,1 @@
-call check_total_grade;
+call get_average_grade;

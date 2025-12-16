@@ -5,7 +5,15 @@ Issue #9 -> https://github.com/CPNV-ES-SQL2/sql-progress/issues/9
 Parler du sujet puis des objectifs du scénario puis du scénario : https://github.com/CPNV-ES-SQL2/bdd-foodtruck-issue/blob/feature/userAndSystemVariables/markdown/UserSystemVariable.md
 
 
+parler théorie :
+dire qu'est ce que c'est une var u-d
+peut avoir plusieurs type
+can't use direct dans du SQL excepté si préparé
+:= part if needed 
+https://dev.mysql.com/doc/refman/8.4/en/assignment-operators.html
+
 ----- SCENAR1 -----
+Prove not multi-session
 --- GIVEN ---
 Get 2 cmd pour les sessions -> cd C:\Users\pr28mdn\Desktop\SQL2\sql-progress\appendices (easier source)
 
@@ -42,22 +50,27 @@ https://dev.mysql.com/doc/mysql-errors/8.0/en/server-error-reference.html
 say why variable defined et system cannot do this with doc
 User defined : https://dev.mysql.com/doc/refman/8.4/en/user-variables.html
 system :https://dev.mysql.com/doc/refman/9.1/en/using-system-variables.html (pas explicite, implique qu'un utilisateur stantard ne peut pas le faire)
+
+Temporary Table:
+https://dev.mysql.com/doc/refman/8.4/en/create-temporary-table.html#:~:text=A%20TEMPORARY%20table%20is%20visible,table%20of%20the%20same%20name.
  
 say how to do
 --- GIVEN ---
 2 cmd
 
-do setup 2
+do setup 2 on 1st session
 
-check variable
+exec sce2_1 on 1st session
 
-exec sce2_1 on whatever session
+open 2nd session
 
-check variable only on the session used
-
-exec sec2_2 on both session
+exec sec2_2 on 2 session
 
 show result and explain
+
+
+
+
 
 
 quelque cmd si nécessaire durant prés. ou autre moment
