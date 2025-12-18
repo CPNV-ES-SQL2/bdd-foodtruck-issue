@@ -17,6 +17,7 @@ Il s'agit de prouver par la pratique les points suivants:
 ## Scénario
 ### Scénario 1: Identification de la violation de la BCNF.
 #### Given
+
 Prenons le contexte d'une base de données de gestion des cours par example pour le CPNV. Exutons le script `given.sql` pour créer la base de données en 3NF mais violant la BCNF. Imaginons que 4 éléve participe au cours `Database Systems` et que leur instructeur est `Nicolas`. 
 
 Imaginons maintenant que `Nicolas` donne le cours `Database Systems` en paralèle avec un autre instructeur `Julien`. 
@@ -35,6 +36,7 @@ Nous remarquons que la table `Students_Courses` viole la BCNF car la dépendance
 Executons la migration `bcnf_migration.sql` pour normaliser la base de données en BCNF.
 
 #### Then
+
 Après avoir appliqué la migration, nous avons créé une nouvelle table `Instructors_Courses` pour gérer la relation entre les instructeurs et les cours. La table `Students_Courses` ne contient plus l'instructeur, ce qui élimine la dépendance fonctionnelle problématique.
 ```sql
 INSERT INTO Courses_Instructors (instructor_id, course_id) VALUES
@@ -111,3 +113,28 @@ INSERT INTO Employees_Roles (employee_id, project_role_id) VALUES
 - [Normalization in SQL (1NF - 5NF): A Beginner’s Guide](https://www.datacamp.com/tutorial/normalization-in-sql)
 - [Database normalization](https://en.wikipedia.org/wiki/Database_normalization)
 - [Qu’est-ce que la normalisation des bases de données ?](https://www.ibm.com/fr-fr/think/topics/database-normalization)
+
+### Formes normales
+Une forme normale est un ensemble de règles utilisées pour organiser les données dans une base de données relationnelle. L'objectif principal de la normalisation est de minimiser la redondance des données et d'améliorer l'intégrité des données.
+
+### 3NF
+La troisième forme normale (3NF) est une forme normale qui vise à éliminer les dépendances transitives. Une relation est en 3NF si, pour chaque dépendance fonctionnelle X -> Y, soit X est une superclé, soit Y est un attribut primaire. Cela signifie qu'aucun attribut non clé ne doit dépendre d'un autre attribut non clé.
+
+### BCNF
+Boyce-Codd Normal Form (BCNF) est une forme normale plus stricte que la troisième forme normale (3NF). Une relation est en BCNF si, pour chaque dépendance fonctionnelle X -> Y, X est une superclé. Cela signifie que chaque déterminant doit être une clé candidate.
+
+### 4NF
+La quatrième forme normale (4NF) traite des dépendances multivaluées. Une relation est en 4NF si, pour chaque dépendance multivaluée X ->> Y, X est une superclé. Cela signifie qu'une table ne doit pas contenir de dépendances multivaluées non triviales.  
+
+### 5NF
+La cinquième forme normale (5NF), également connue sous le nom de forme normale de projection-join, traite des dépendances joinives. Une relation est en 5NF si, pour chaque dépendance joinive, la relation peut être décomposée en relations plus petites sans perte d'information. Cela signifie que toutes les dépendances joinives doivent être basées sur des clés candidates.
+
+## Glossaire
+
+- **clé candidate**: Un ensemble minimal d'attributs qui peut identifier de manière unique une ligne dans une table.
+- **dépendance fonctionnelle**: Une relation entre deux ensembles d'attributs dans une base de données, où la valeur d'un ensemble (le déterminant) détermine la valeur de l'autre ensemble.
+- **superclé**: Un ensemble d'attributs qui peut identifier de manière unique une ligne dans une table, mais qui peut contenir des attributs supplémentaires non nécessaires pour l'identification unique.
+- **dépendance multivaluée**: Une situation où un attribut dans une table dépend de manière indépendante d'un autre attribut, ce qui peut entraîner des redondances.
+- **dépendance joinive**: Une situation où une table peut être décomposée en plusieurs tables plus petites sans perte d'information, mais où la recomposition des tables originales nécessite une jointure complexe.
+- **normalisation**: Le processus d'organisation des données dans une base de données pour minimiser la redondance et améliorer l'intégrité des données.
+- **dépendance transitive**: Une situation où un attribut dépend d'un autre attribut qui, à son tour, dépend d'un troisième attribut.
