@@ -18,7 +18,7 @@ Il s'agit de prouver par la pratique ces points suivant:
 
 * __Given__ :  Je prépare deux sessions différentes :
 	- Session 1 : Doit avoir exécuté le **script setup** et défini une variable user-defined @total_grade.
-	- Session 2 : Doit avoir exécuté le **premier script** et défini une variable user-defined @total_point.
+	- Session 2 : Doit avoir exécuté le **premier script** et défini une variable user-defined @total_point et @total_grade.
 
 J'initialise la base de données avec des données de test, je définis la somme des notes et je crée 2 procédures qui vont vérifier les variables.
 
