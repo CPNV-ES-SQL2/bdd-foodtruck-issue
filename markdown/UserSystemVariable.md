@@ -17,10 +17,10 @@ Il s'agit de prouver par la pratique ces points suivant:
 #### Scénario 1 : Démontrer la portée et le rôle des variables user-defined 
 
 * __Given__ :  Je prépare deux sessions différentes :
-	- Session 1 : Doit avoir exécuté le **script setup** et défini une variable user-defnied @total_grade.
+	- Session 1 : Doit avoir exécuté le **script setup** et défini une variable user-defined @total_grade.
 	- Session 2 : Doit avoir exécuté le **premier script** et défini une variable user-defined @total_point.
 
-J'initialise la base de données avec des données de test, je set la somme des notes et je crée 2 vérifications des variables via des procédures via le script setup dans la session 1.
+J'initialise la base de données avec des données de test, je définis la somme des notes et je crée 2 procédures qui vont vérifier les variables.
 
 ```sql
 -- Script setup, session 1 uniquement
@@ -93,8 +93,8 @@ SELECT ROUND(@total_grade / (SELECT COUNT(DISTINCT firstname) FROM resultstudent
 ```
 
 * __Then__ : 
-	* Session 1 : J'attends que cette session me renvoie une erreur 1644 pour @total_point et une moyenne de note fausse
-	* Session 2 : J'attends que cette session me renvoie le nombre de points et la note moyen par élève.
+	* Session 1 : Je m'attends à ce que cette session me renvoie une erreur 1644 pour @total_point et une moyenne de notes erronée.
+	* Session 2 : Je m'attends à ce que cette session me renvoie le nombre de points et la note moyenne par élève.
 
 ```sql
 -- Session 2 :
@@ -124,9 +124,9 @@ ERROR 1644 (45000): The variable @total_point is empty
 
 ### Scénario 2 : Définir et utiliser une variable "multi-session"
 
-* __Given__ : J'aimerai que le résultat de ma procédure "get_average_grade()" soit accessible par n'importe quel session
+* __Given__ : J'aimerai que le résultat de ma procédure "get_average_grade()" soit accessible par n'importe quelle session
 
-Je re-initialise la db via le script setup (*différent du setup du scénario 1*)
+Je réinitialise la base de données via le script setup (*différent du setup du scénario 1*).
 
 ```sql
 -- Script setup
@@ -179,7 +179,7 @@ END //
 DELIMITER ;
 ```
 
-Je lance le script 1 afin de stocker la somme total des notes des élèves dans ma table de variable
+Je lance le script 1 afin de stocker la somme totale des notes des élèves dans ma table config.
 
 ```sql
 -- Seulement Session 1, Script 1
@@ -187,9 +187,9 @@ SET @total_grade := select sum(grade) from resultstudent;
 CALL update_variable('total_grade', @total_grade)
 ```
 
-Je prépare une second session connecté à la db
+Je prépare une seconde session connectée à la base de données.
 
-* __When__ : J'exécute le second script sur la seconde session
+* __When__ : J'exécute le second script sur la session 2.
 
 ```sql
 -- Script 2
@@ -206,7 +206,7 @@ BEGIN
 END //
 ```
 
-* __Then__ : La seconde session devrait voir la note moyenne par élève 
+* __Then__ : Je m'attends à ce que la session 2 me renvoie la moyenne de notes exacte par élève.
 
 ```sql
 -- Résultat du script 2 sur Session 2
