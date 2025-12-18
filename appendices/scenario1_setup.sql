@@ -7,7 +7,7 @@ CREATE TABLE resultstudent(
     test varchar(40),
 	firstname varchar(20), 
 	points int,
-    grade decimal (5,1),
+    grade decimal (2,1),
 	PRIMARY KEY (id)
 );
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
