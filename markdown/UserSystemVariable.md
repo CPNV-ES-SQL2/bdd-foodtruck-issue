@@ -33,7 +33,7 @@ CREATE TABLE resultstudent(
     test varchar(40),
 	firstname varchar(20), 
 	points int,
-    grade decimal (5,1),
+    grade decimal (2,1),
 	PRIMARY KEY (id)
 );
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
@@ -139,7 +139,7 @@ CREATE TABLE resultstudent(
     test varchar(40),
 	firstname varchar(20), 
 	points int,
-    grade decimal (5,1),
+    grade decimal (2,1),
 	PRIMARY KEY (id)
 );
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
@@ -161,15 +161,15 @@ END //
 DELIMITER ;
 
 CREATE TABLE config(
-	name varchar(100) PRIMARY KEY,
-	value VARCHAR(256)
+	name varchar(50) PRIMARY KEY,
+	value VARCHAR(100)
 );
 INSERT INTO config(name) VALUES ('total_grade');
 
 DELIMITER //
 CREATE PROCEDURE update_variable(
-    IN u_variable VARCHAR(64),
-    IN u_value VARCHAR(256)
+    IN u_variable VARCHAR(50),
+    IN u_value VARCHAR(100)
 )
 BEGIN
     UPDATE config
