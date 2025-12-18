@@ -19,20 +19,20 @@ INSERT INTO resultstudent(firstname,points,grade) VALUES
 DELIMITER //
 CREATE PROCEDURE get_average_grade()
 BEGIN
-	IF (SELECT value FROM variabletable WHERE name = 'total_grade') IS NULL THEN
+	IF (SELECT value FROM config WHERE name = 'total_grade') IS NULL THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'The variable total_grade is empty';
 	ELSE
-       SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
+       SELECT ROUND((SELECT value FROM config WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
     END IF; 
 END //
 DELIMITER ;
 
-CREATE TABLE variabletable(
+CREATE TABLE config(
 	name varchar(100) PRIMARY KEY,
 	value VARCHAR(256)
 );
-INSERT INTO variabletable(name) VALUES ('total_grade');
+INSERT INTO config(name) VALUES ('total_grade');
 
 DELIMITER //
 CREATE PROCEDURE update_variable(
@@ -40,7 +40,7 @@ CREATE PROCEDURE update_variable(
     IN u_value VARCHAR(256)
 )
 BEGIN
-    UPDATE variabletable
+    UPDATE config
     SET value = u_value
     WHERE name = u_variable;
 END //
