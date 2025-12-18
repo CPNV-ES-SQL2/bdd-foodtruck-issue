@@ -26,12 +26,6 @@ BEGIN
        SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
     END IF; 
 END //
-
-create procedure sum_grade()
-begin 
-	 select sum(grade) from resultstudent;
-end //
-
 DELIMITER ;
 
 CREATE TABLE variabletable(

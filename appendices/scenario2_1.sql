@@ -1,2 +1,2 @@
-SET @total_grade := call sum_grade();
+SET @total_grade := (select sum(grade) from resultstudent);
 CALL update_variable('total_grade', @total_grade)

@@ -158,11 +158,6 @@ BEGIN
        SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
     END IF; 
 END //
-
-CREATE procedure sum_grade()
-BEGIN
-	SELECT sum(grade) FROM resultstudent;
-END //
 DELIMITER ;
 
 CREATE TABLE variabletable(
@@ -188,7 +183,7 @@ Je lance le script 1 afin de stocker la somme total des notes des élèves dans 
 
 ```sql
 -- Seulement Session 1, Script 1
-SET @total_grade := call sum_grade();
+SET @total_grade := select sum(grade) from resultstudent;
 CALL update_variable('total_grade', @total_grade)
 ```
 
