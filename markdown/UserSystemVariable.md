@@ -124,7 +124,7 @@ ERROR 1644 (45000): The variable @total_point is empty
 
 ### Scénario 2 : Définir et utiliser une variable "multi-session"
 
-* __Given__ : J'aimerai que le résultat de ma procédure "get_average_grade()" soit accessible par n'importe quel session
+* __Given__ : J'aimerai que le résultat de mes procédures soient accessible par n'importe quel session
 
 Je re-initialise la db via le script setup. Une nouvelle table a était ajouter afin de pouvoir sauvegarder les valeurs des variables .
 
@@ -208,7 +208,7 @@ call check_total_point;
 call check_total_grade;
 ```
 
-* __Then__ : La seconde session devrait voir la note moyenne par élève 
+* __Then__ : La seconde session devrait voir la note et points moyenne des élèves 
 
 ```sql
 -- Résultats du script 2 sur Session 2
