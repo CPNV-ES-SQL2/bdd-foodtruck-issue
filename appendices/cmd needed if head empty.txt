@@ -71,8 +71,6 @@ show result and explain
 
 
 
-
-
 quelque cmd si nécessaire durant prés. ou autre moment
 
 chemin cmd to appendices -> easier use of source cmd

@@ -17,10 +17,10 @@ Il s'agit de prouver par la pratique ces points suivant:
 #### Scénario 1 : Démontrer la portée et le rôle des variables user-defined 
 
 * __Given__ :  Je prépare deux sessions différentes :
-	- Session 1 : Doit avoir exécuté le **script setup** et défini une variable user-defined @total_grade.
-	- Session 2 : Doit avoir exécuté le **premier script** et défini une variable user-defined @total_point et @total_grade.
+	- Session 1 : Doit avoir exécuté le **script setup** et défini une variable user-defnied @total_grade.
+	- Session 2 : Doit avoir exécuté le **premier script** et défini une variable user-defined @total_point.
 
-J'initialise la base de données avec des données de test, je définis la somme des notes et je crée 2 procédures qui vont vérifier les variables.
+J'initialise la base de données avec des données de test, je set la somme des notes et je crée 2 vérifications des variables via des procédures via le script setup dans la session 1.
 
 ```sql
 -- Script setup, session 1 uniquement
@@ -33,7 +33,7 @@ CREATE TABLE resultstudent(
     test varchar(40),
 	firstname varchar(20), 
 	points int,
-    grade decimal (2,1),
+    grade decimal (5,1),
 	PRIMARY KEY (id)
 );
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
@@ -93,21 +93,21 @@ SELECT ROUND(@total_grade / (SELECT COUNT(DISTINCT firstname) FROM resultstudent
 ```
 
 * __Then__ : 
-	* Session 1 : Je m'attends à ce que cette session me renvoie une erreur 1644 pour @total_point et une moyenne de notes erronée.
-	* Session 2 : Je m'attends à ce que cette session me renvoie le nombre de points et la note moyenne par élève.
+	* Session 1 : J'attends que cette session me renvoie une erreur 1644 pour @total_point et une moyenne de note fausse
+	* Session 2 : J'attends que cette session me renvoie le nombre de points et la note moyen par élève.
 
 ```sql
 -- Session 2 :
 +---------------+
 | average_point |
 +---------------+
-|           7.2 |
+|           6.8 |
 +---------------+
 -- et
 +---------------+
 | average_grade |
 +---------------+
-|           4.1 |
+|           3.9 |
 +---------------+
 
 -- Session 1 :
@@ -116,17 +116,17 @@ ERROR 1644 (45000): The variable @total_point is empty
 +---------------+
 | average_grade |
 +---------------+
-|           3.3 |
+|           3.5 |
 +---------------+
 ```
 
-* [ma vidéo de démonstration](https://www.youtube.com/watch?v=1jY8VqpmeZg)
+* [ma vidéo de démonstration](https://www.youtube.com/watch?v=uuN_KMPYwGg)
 
 ### Scénario 2 : Définir et utiliser une variable "multi-session"
 
-* __Given__ : J'aimerai que le résultat de ma procédure "get_average_grade()" soit accessible par n'importe quelle session
+* __Given__ : J'aimerai que le résultat de ma procédure "get_average_grade()" soit accessible par n'importe quel session
 
-Je réinitialise la base de données via le script setup (*différent du setup du scénario 1*).
+Je re-initialise la db via le script setup. Une nouvelle table a était ajouter afin de pouvoir sauvegarder les valeurs des variables .
 
 ```sql
 -- Script setup
@@ -139,7 +139,7 @@ CREATE TABLE resultstudent(
     test varchar(40),
 	firstname varchar(20), 
 	points int,
-    grade decimal (2,1),
+    grade decimal (5,1),
 	PRIMARY KEY (id)
 );
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
@@ -149,75 +149,83 @@ INSERT INTO resultstudent(firstname,points,grade) VALUES
 ("Karl",5,3.5);
 
 DELIMITER //
-CREATE PROCEDURE get_average_grade()
+CREATE PROCEDURE check_total_point()
 BEGIN
-	IF (SELECT value FROM config WHERE name = 'total_grade') IS NULL THEN
+	IF (SELECT value FROM variabletable WHERE name = 'total_point') IS NULL THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'The variable total_grade is empty';
+            SET MESSAGE_TEXT = 'The variable total_point is empty';
 	ELSE
-       SELECT ROUND((SELECT value FROM config WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
+		SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_point') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_point;
     END IF; 
 END //
-DELIMITER ;
+CREATE PROCEDURE check_total_grade()
+BEGIN
+	IF (SELECT value FROM variabletable WHERE name = 'total_grade') IS NULL THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'The variable @total_grade is empty';
+	ELSE
+		SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
+	END IF;
+END //
 
-CREATE TABLE config(
-	name varchar(50) PRIMARY KEY,
-	value VARCHAR(100)
+CREATE TABLE variabletable(
+	name varchar(100) PRIMARY KEY,
+	value VARCHAR(256)
 );
-INSERT INTO config(name) VALUES ('total_grade');
+INSERT INTO variabletable(name,value) VALUES ('total_grade',(select sum(grade) from resultstudent));
+call check_total_grade;
 
-DELIMITER //
-CREATE PROCEDURE update_variable(
-    IN u_variable VARCHAR(50),
-    IN u_value VARCHAR(100)
-)
-BEGIN
-    UPDATE config
-    SET value = u_value
-    WHERE name = u_variable;
-END //
-DELIMITER ;
 ```
 
-Je lance le script 1 afin de stocker la somme totale des notes des élèves dans ma table config.
+J'enregistre directement la somme total des notes directement dans la variable
 
 ```sql
--- Seulement Session 1, Script 1
-SET @total_grade := select sum(grade) from resultstudent;
-CALL update_variable('total_grade', @total_grade)
-```
-
-Je prépare une seconde session connectée à la base de données.
-
-* __When__ : J'exécute le second script sur la session 2.
-
-```sql
--- Script 2
-call get_average_grade;
-
--- Ce qui exécutera la procédure get_average_grade() :
-BEGIN
-	IF (SELECT value FROM config WHERE name = 'total_grade') IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'The variable total_grade is empty';
-	ELSE
-       SELECT ROUND((SELECT value FROM config WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
-    END IF; 
-END //
-```
-
-* __Then__ : Je m'attends à ce que la session 2 me renvoie la moyenne de notes exacte par élève.
-
-```sql
--- Résultat du script 2 sur Session 2
 +---------------+
 | average_grade |
 +---------------+
-|           4.1 |
+|           4.4 |
 +---------------+
 ```
 
-* [ma vidéo de démonstration](https://www.youtube.com/watch?v=U5fzLqZUA0s)
+Je lance le script 1 afin de stocker la nouvelle somme total des notes des élèves dans ma table de variable
+
+```sql
+-- Seulement Session 1, Script 1
+INSERT INTO resultstudent(firstname,points,grade) VALUES
+("Molly",3,2.0);
+
+INSERT INTO variabletable(name,value) VALUES ('total_point',(select sum(points) from resultstudent));
+UPDATE variabletable set value = (select sum(grade) from resultstudent) where name = 'total_grade';
+```
+
+Je prépare une second session connecté à la db
+
+* __When__ : J'exécute le second script sur la seconde session
+
+```sql
+-- Script 2
+call check_total_point;
+call check_total_grade;
+```
+
+* __Then__ : La seconde session devrait voir la note moyenne par élève 
+
+```sql
+-- Résultats du script 2 sur Session 2
++---------------+
+| average_grade |
++---------------+
+|           3.9 |
++---------------+
+
++---------------+
+| average_point |
++---------------+
+|           6.8 |
++---------------+
+```
+
+* [ma vidéo de démonstration](https://www.youtube.com/watch?v=uuN_KMPYwGg)
 ## Théorie et Sources WIP
 
 ## Source
@@ -232,4 +240,3 @@ END //
 - Autre :
 	- [Liste des codes d'erreurs, officiel MySQL](https://downloads.mysql.com/docs/mysql-errors-8.0-en.a4.pdf)
 	- [Signal et SQLSTATE 45000, officiel MySQL](https://dev.mysql.com/doc/refman/8.4/en/signal.html)
-	- [Table temporaires, officiel MySQL](https://dev.mysql.com/doc/refman/8.4/en/create-temporary-table.html)

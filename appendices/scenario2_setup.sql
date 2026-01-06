@@ -1,3 +1,4 @@
+-- Script setup
 DROP DATABASE IF EXISTS sql2Sce2;
 CREATE DATABASE sql2Sce2;
 USE sql2Sce2;
@@ -7,41 +8,39 @@ CREATE TABLE resultstudent(
     test varchar(40),
 	firstname varchar(20), 
 	points int,
-    grade decimal (2,1),
+    grade decimal (5,1),
 	PRIMARY KEY (id)
 );
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
 ("Jean",10,5.5),
 ("Mike",12,6.0),
-("Rudy",2,1.5),
+("Rudy",4,2.5),
 ("Karl",5,3.5);
 
 DELIMITER //
-CREATE PROCEDURE get_average_grade()
+CREATE PROCEDURE check_total_point()
 BEGIN
-	IF (SELECT value FROM config WHERE name = 'total_grade') IS NULL THEN
+    IF (SELECT value FROM variabletable WHERE name = 'total_point') IS NULL THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'The variable total_grade is empty';
+            SET MESSAGE_TEXT = 'The variable @total_point is empty';
 	ELSE
-       SELECT ROUND((SELECT value FROM config WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;
-    END IF; 
+       SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_point') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_point;    
+	END IF;
 END //
-DELIMITER ;
-
-CREATE TABLE config(
-	name varchar(50) PRIMARY KEY,
-	value VARCHAR(100)
-);
-INSERT INTO config(name) VALUES ('total_grade');
-
-DELIMITER //
-CREATE PROCEDURE update_variable(
-    IN u_variable VARCHAR(50),
-    IN u_value VARCHAR(100)
-)
+CREATE PROCEDURE check_total_grade()
 BEGIN
-    UPDATE config
-    SET value = u_value
-    WHERE name = u_variable;
+	IF (SELECT value FROM variabletable WHERE name = 'total_grade') IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'The variable @total_grade is empty';
+	ELSE
+       SELECT ROUND((SELECT value FROM variabletable WHERE name = 'total_grade') / (SELECT COUNT(DISTINCT firstname) FROM resultstudent), 1) AS average_grade;    
+	END IF; 
 END //
 DELIMITER ;
+
+CREATE TABLE variabletable(
+	name varchar(100) PRIMARY KEY,
+	value VARCHAR(256)
+);
+INSERT INTO variabletable(name,value) VALUES ('total_grade',(select sum(grade) from resultstudent));
+call check_total_grade;

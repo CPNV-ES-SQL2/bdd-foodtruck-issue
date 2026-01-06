@@ -13,7 +13,7 @@ CREATE TABLE resultstudent(
 INSERT INTO resultstudent(firstname,points,grade) VALUES 
 ("Jean",10,5.5),
 ("Mike",12,6.0),
-("Rudy",2,1.5),
+("Rudy",4,2.5),
 ("Karl",5,3.5);
 
 DELIMITER //
