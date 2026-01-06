@@ -208,7 +208,7 @@ call check_total_point;
 call check_total_grade;
 ```
 
-* __Then__ : La seconde session devrait voir la note et points moyenne des élèves 
+* __Then__ : La seconde session devrait voir la moyenne des note et points des élèves 
 
 ```sql
 -- Résultats du script 2 sur Session 2
